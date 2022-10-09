@@ -27,5 +27,5 @@ mtrx <- transform_data(dnam_base_mtrx, "CpG_ID",
 ## Dex
 dnam_dex_mtrx  <- fread("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/integrative/matrixEQTL/methyl_beta_mtrx_dex.csv")
 
-mtrx <- transform_data(dnam_base_mtrx, "CpG_ID", 
+mtrx_dex <- transform_data(dnam_dex_mtrx, "CpG_ID", 
                        "/binder/mgp/datasets/2020_DexStim_Array_Human/isn/input/dnam/methyl_beta_mtrx_dex.csv") 
