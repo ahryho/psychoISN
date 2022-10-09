@@ -9,66 +9,52 @@ library(doParallel)
 
 # 1. Load data
 
-# lmer.res.out.fn <- "lmer_all_plus_cell_counts.txt"
-# input.parameters.fn <- "input_parameters.csv"
+# args        <- commandArgs(T)
+# mtrx_fn     <- as.character(args[1]) # dnam, snps, gex
+# pheno_fn    <- as.character(args[3])
+# out_mtrx_fn <- as.character(args[4]) # corrected matrix
+# treatment   <- as.character(args[2]) # dex
+# 
+# mtrx_fn     <- paste0(mtrx_fn, treatment, ".csv")
 
-args        <- commandArgs(T)
-mtrx_fn     <- as.character(args[1]) # dnam, snps, gex
-pheno_fn    <- as.character(args[3])
-out_mtrx_fn <- as.character(args[4]) # corrected matrix
-treatment   <- as.character(args[2]) # dex
+treatment   <- "veh"
 
-mtrx_fn     <- paste0(mtrx_fn, treatment, ".csv")
+mtrx_fn     <- paste0("/binder/mgp/workspace//2020_DexStim_Array_Human/dex-stim-human-array/data/integrative/matrixEQTL/methyl_beta_mtrx_", treatment, ".csv")
+pheno_fn    <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/pheno/pheno_full_for_kimono.csv"
+out_mtrx_fn <- "/binder/mgp/workspace/2020_DexStim_Array_Human/isn/input/dnam/methyl_beta_mtrx_corrected_for_cov"
 
-mtrx_fn     <- "/binder/mgp/datasets/2020_DexStim_Array_Human/isn/input/dnam/methyl_beta_mtrx_veh.csv"
-pheno.fn    <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/pheno/pheno_full_for_kimono.csv"
-out_mtrx_fn <- "/binder/mgp/workspace/2020_DexStim_Array_Human/isn/input/input/dnam/methyl_beta_mtrx_corrected_for_cov_"
+mtrx    <- fread(mtrx_fn) 
+cpg_ids <- mtrx$CpG_ID
+mtrx    <- mtrx[, -1]
 
-mtrx <- fread(mtrx_fn) 
-gex.ids  <- data.frame(gex.mtrx[, ENSG_ID])
-gex.mtrx <- gex.mtrx[, -c("ENSG_ID")]
-
-pheno    <- read.csv2(pheno.fn) #, na.strings = "#N/A") 
+pheno    <- read.csv2(pheno_fn) #, na.strings = "#N/A") 
 pheno    <- pheno[pheno$Include == 1 & pheno$Group == treatment, ]
 
-pheno$Sample_ID  <- as.factor(pheno$Sample_ID)
+## Prepare covariates 
+cov_lst <- c("Sex", "Age", "BMI_D1", "DNAm_SV1", "DNAm_SV2", "DNAm_SV3", "PC1", "PC2")
+cov_df  <- pheno[, c("DNA_ID", cov_lst)]
 
-# SVs:
-pheno$V1         <- as.numeric(as.character(pheno$V1))
-pheno$V2         <- as.numeric(as.character(pheno$V2))
-pheno$V3         <- as.numeric(as.character(pheno$V3))
+cov_df  <- cov_df[match(colnames(mtrx), cov_df$DNA_ID ),]
+cov_df[, -1]  <- scale(cov_df[, -1]) 
+mtrx <- as.matrix(mtrx)
 
-# Take only veh and dex sampl
-samples.ids <- as.character(pheno$DNA_ID)
-
-# 2. Making sure about samples in pheno and and betas matrix in the same order
-table(colnames(gex.mtrx) %in% samples.ids)
-# pheno   <- pheno[match(colnames(beta.mtrx), pheno$DNAm_ID ),]
-all(samples.ids == colnames(gex.mtrx))
-
-gex.mtrx <- as.matrix(gex.mtrx)
-
-length(pheno$Sex)
-length(gex.mtrx[1,])
-
-# 3. Build model
+#Build model
 
 no.cores <- detectCores() - 1
 cl <- makeCluster(no.cores)
 registerDoParallel(cl)
 
-res <- foreach(gex = 1:nrow(gex.mtrx), .combine = rbind) %dopar% { 
-  lm.model <- lm(gex.mtrx[gex, ] ~ pheno$V1 + pheno$V2 + pheno$V3)
-  
-  residuals(lm.model)
+res <- foreach(feature = 1:nrow(mtrx), .combine = rbind) %dopar% { 
+  lm.model <- lm(mtrx[feature, ] ~ ., data = cov_df[, -1])
+  predict(lm.model)
 }
 
 stopImplicitCluster()
 
 res <- as.data.frame(res)
-res <- cbind(gex.ids, res)
-colnames(res)[1] <- "ENSG_ID"
+res <- cbind(cpg_ids, mtrx)
+colnames(res) <- c("CpG_ID", colnames(mtrx))
 
 fwrite(res, 
-       paste0(lmer.res.out.fn, "_", treatment, ".csv"),
+       paste0(out_mtrx_fn, "_", treatment, ".csv"),
        quote = F, row.names = F, sep = ";")
