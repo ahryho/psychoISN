@@ -9,7 +9,7 @@ library(data.table)
 
 transform_data <- function(mtrx, col_id, out_fn){
   # column "col_id" of mtrx is ID
-  mtrx_t <- t(select(mtrx, -col_id))
+  mtrx_t <- data.frame(t(select(mtrx, -col_id)))
   colnames(mtrx_t) <- as.data.frame(mtrx)[, col_id]
   
   fwrite(mtrx_t, out_fn, 
