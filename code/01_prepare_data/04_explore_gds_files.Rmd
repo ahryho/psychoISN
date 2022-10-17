@@ -130,3 +130,22 @@ print(paste0("GDS matrix: table for ", rs))
 table(snp_mtrx[, rs])
 ```
 
+
+
+```{r}
+t_snp_mtrx <- t(snp_mtrx)
+dim(t_snp_mtrx)
+t_snp_mtrx[["SNP"]] <- rownames(t_snp_mtrx)
+
+fwrite(t_snp_mtrx, 
+       "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/integrative/matrixEQTL/snp_mtrx_with_na.csv",
+       quote = F, row.names = T, sep = ";")
+```
+
+```{r}
+m <- fread("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/integrative/matrixEQTL/snp_mtrx_with_na.csv")
+
+m <- m[, -1]
+```
+
+
