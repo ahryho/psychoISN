@@ -1,0 +1,132 @@
+---
+title: "Individual-Specific Network for Stress-Related Psychiatric Disorders"
+sub-title: Explore GDS formats
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+library(gdsfmt)
+library(SNPRelate)
+
+library(arrow)
+```
+
+```{r}
+knitr::opts_knit$set(root.dir = "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/")
+```
+
+# 1. DNAm
+
+## Baseline 
+
+```{r load-dnam}
+treatment <- "veh"
+gds_fn   <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam/gds/methyl_beta_mtrx_corrected_for_cov",  
+                   "_", treatment, ".gds") 
+
+dnam_gds_file <- openfn.gds(gds_fn)
+
+dnam_mtrx <- read.gdsn(index.gdsn(dnam_gds_file, "beta_mtrx"))
+colnames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "cpg_id"))
+rownames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "sample_id"))
+
+closefn.gds(dnam_gds_file)
+```
+
+## Check dimensionality of DNAm mtrx
+
+```{r}
+dim(dnam_mtrx)
+```
+
+## Check summary of the first 5 CpGs
+
+```{r}
+summary(dnam_mtrx[, 1:5])
+```
+
+## 5 CpGs for the first 10 samples
+
+```{r}
+dnam_mtrx[1:10, 1:5]
+```
+# 2. Genotype
+
+# 3. Explore transformed object
+
+```{r load-snp-gds}
+snps_gds <- snpgdsOpen("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/gds/dex_geno_imputed.gds")
+
+# snpset <- snpgdsLDpruning(snps_gds, ld.threshold=0.2, maf = 0.05, slide.max.bp = 1000000L, slide.max.n = 100, method = "corr")
+
+geno_obj  <- snpgdsGetGeno(snps_gds, with.id = T)
+snp_chr   <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
+
+snpgdsClose(snps_gds)
+
+snp_mtrx   <- geno_obj$genotype
+colnames(snp_mtrx)   <- geno_obj$snp.id
+rownames(snp_mtrx)   <- geno_obj$sample.id
+```
+
+## Check dimensionality of SNP mtrx
+
+```{r}
+dim(snp_mtrx)
+```
+
+## Check summary of the first 5 SNPs
+
+```{r}
+summary(snp_mtrx[, 1:5])
+```
+
+## 5 SNP for the first 10 samples
+
+```{r}
+snp_mtrx[1:10, 1:5]
+```
+## Compare SNP mtrx with the matrix that was used for eQTL/meQTL analysis: transformed using plink
+
+### Load SNP matrix that was used for eQTL/meQTL analysis
+
+```{r load-snp-qtl}
+snp_mpip <- read_delim_arrow("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/integrative/matrixEQTL/snp_mtrx.csv", delim = ";")
+```
+
+### Align columns and rows
+
+```{r}
+snp_mtrx <- snp_mtrx[rownames(snp_mtrx) %in% colnames(snp_mpip)[-1],]
+dim(snp_mpip)
+```
+
+### Compare GDS SNP mtrx with QTL SNP mtrx
+
+```{r}
+print("Sample IDs for missing values from GDS mtrx: ")
+snp_mtrx[is.na(snp_mtrx[, 2]), 2]
+```
+
+```{r}
+rs <- "rs3131971"
+
+print(paste0("QTL matrix: table for ", rs))
+table(t(snp_mpip[snp_mpip$SNP == rs, -1]))
+
+print(paste0("GDS matrix: table for ", rs))
+table(snp_mtrx[, rs])
+```
+
+```{r}
+rs <- colnames(snp_mtrx)[7894]
+
+print(paste0("QTL matrix: table for ", rs))
+table(t(snp_mpip[snp_mpip$SNP == rs, -1]))
+
+print(paste0("GDS matrix: table for ", rs))
+table(snp_mtrx[, rs])
+```
+
