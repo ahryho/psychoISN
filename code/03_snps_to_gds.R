@@ -1,5 +1,4 @@
 library(SNPRelate)
-library(SmCCNet)
 library(data.table)
 
 snp_mpip <- fread("../../../dex-stim-human-array/data/integrative/matrixEQTL/snp_mtrx.csv")
