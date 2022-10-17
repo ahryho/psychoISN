@@ -3,7 +3,7 @@ library(gdsfmt)
 
 # 1. Load corrected for covariates dnam matrices
 
-treatment   <- "veh"
+treatment   <- "dex"
 
 mtrx_fn_prefix <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam/methyl_beta_mtrx_corrected_for_cov"
 mtrx_fn        <-  paste0(mtrx_fn_prefix, "_", treatment, ".csv")
