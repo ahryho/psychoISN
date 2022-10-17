@@ -26,7 +26,8 @@ snps_gds <- snpgdsOpen("gds/dex_geno_imputed.gds")
 
 # snpset <- snpgdsLDpruning(snps_gds, ld.threshold=0.2, maf = 0.05, slide.max.bp = 1000000L, slide.max.n = 100, method = "corr")
 
-geno_obj   <- snpgdsGetGeno(snps_gds, with.id = T)
+geno_obj  <- snpgdsGetGeno(snps_gds, with.id = T)
+snp_chr   <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
 
 snpgdsClose(snps_gds)
 
