@@ -23,6 +23,8 @@ LoadGenotype <- function(gds_fn, is_ld = F){
       snp_mtrx             <- geno_obj$genotype
       colnames(snp_mtrx)   <- geno_obj$snp.id
       rownames(snp_mtrx)   <- geno_obj$sample.id
+      
+      return(snp_mtrx)
     },
     error = function(cond){
       # message(cond)
@@ -30,8 +32,8 @@ LoadGenotype <- function(gds_fn, is_ld = F){
       snps_gds_file         <- openfn.gds(gds_fn)
       
       snps_mtrx             <- read.gdsn(index.gdsn(snps_gds_file, "genotype"))
-      colnames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "snp.id"))
-      rownames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "sample.id"))
+      colnames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "snp_id"))
+      rownames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "sample_id"))
       
       closefn.gds(snps_gds_file)
       
