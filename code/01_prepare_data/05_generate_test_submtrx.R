@@ -42,14 +42,14 @@ closefn.gds(gds_file)
 # 4. Load SNP data
 
 snps_gds_fn <- "input/snps/gds/dex_geno_imputed.gds"
-snp_mtrx    <- LoadGenotype(snps_gds_fn, is_ld = F)
+snps_mtrx    <- LoadGenotype(snps_gds_fn, is_ld = F)
 
 # 5. Generate test SNP mtrx
 
-nr_all_snps     <- ncol(snp_mtrx)
+nr_all_snps     <- ncol(snps_mtrx)
 nr_desired_snps <- 300
 
-snp_sub_mtrx <- snp_mtrx[, sample(x = 1:nr_all_snps, size = nr_desired_snps, replace = F)]
+snps_sub_mtrx <- snps_mtrx[, sample(x = 1:nr_all_snps, size = nr_desired_snps, replace = F)]
 
 ## Generate GDS object and save
 
@@ -57,9 +57,9 @@ gds_fn   <- "input/test_data/dex_geno_imputed.gds"
 
 gds_file <- createfn.gds(gds_fn)
 
-add.gdsn(gds_file, name = "genotype", val = snp_sub_mtrx)
-add.gdsn(gds_file, name = "snp.id", val = colnames(snp_sub_mtrx))
-add.gdsn(gds_file, name = "sample.id", val = rownames(snp_sub_mtrx))
+add.gdsn(gds_file, name = "genotype", val = snps_sub_mtrx)
+add.gdsn(gds_file, name = "snp_id", val = colnames(snps_sub_mtrx))
+add.gdsn(gds_file, name = "sample_id", val = rownames(snps_sub_mtrx))
 
 show(gds_file)
 
