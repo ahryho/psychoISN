@@ -2,33 +2,37 @@ library(SmCCNet)
 library(gdsfmt)
 library(SNPRelate)
 
-# 1. Load DNAm beta mtrx
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
 
-treatment <- "veh"
-gds_fn   <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam/gds/methyl_beta_mtrx_corrected_for_cov",  
-                   "_", treatment, ".gds") 
+source("~/kul/dex-stim-human-array-isns/code/util.R")
 
-dnam_gds_file <- openfn.gds(gds_fn)
+# 1. Set up global variables
 
-dnam_mtrx <- read.gdsn(index.gdsn(dnam_gds_file, "beta_mtrx"))
-colnames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "cpg_id"))
-rownames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "sample_id"))
+treatment   <- "veh"
+pheno_trait <- "Status"
 
-closefn.gds(dnam_gds_file)
+# 2. Load DNAm beta mtrx
+# 
+# gds_fn    <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov",  
+#                     "_", treatment, ".gds") 
 
-# 2. Load SNP data
+gds_fn    <- paste0("input/test_data/methyl_beta_mtrx_corrected_for_cov",  
+                    "_", treatment, ".gds") 
 
-snps_gds <- snpgdsOpen("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/gds/dex_geno_imputed.gds")
+dnam_mtrx <- LoadMethyl(gds_fn, is_mad = F)
 
-# snpset <- snpgdsLDpruning(snps_gds, ld.threshold=0.2, maf = 0.05, slide.max.bp = 1000000L, slide.max.n = 100, method = "corr")
+# 3. Load SNP data
 
-geno_obj  <- snpgdsGetGeno(snps_gds, with.id = T)
-snp_chr   <- read.gdsn(index.gdsn(snps_gds, "snp.chromosome"))
+# snps_gds_fn <- "input/snps/gds/dex_geno_imputed.gds"
+snps_gds_fn  <- "input/test_data/dex_geno_imputed.gds"
+snp_mtrx     <- LoadGenotype(snps_gds_fn, is_ld = F)
 
-snpgdsClose(snps_gds)
+# 4. Load pheno trait
 
-snp_mtrx   <- geno_obj$genotype
-colnames(snp_mtrx)   <- geno_obj$snp.id
-rownames(snp_mtrx)   <- geno_obj$sample.id
+pheno           <- fread("input/pheno/pheno_full_for_kimono.csv")
+pheno           <- pheno[Include == T]
+pheno_treatmnet <- pheno[Dex == ifelse(treatment == "veh", 0, 1)]
+pheno_trait_vec <- pheno_treatmnet[, ..pheno_trait]
 
-# 3. Load pheno trait
+# 5. SmCCNet
+
