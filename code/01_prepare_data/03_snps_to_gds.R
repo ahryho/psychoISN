@@ -24,7 +24,7 @@ sample_fn  <- "plink2_gen/dex_geno_imputed_maf.sample"
 out_gds_fn <- "gds/dex_geno_imputed_maf_from_gen.gds"
 
 snpgdsGEN2GDS(gen.fn = snp_gen_fn, sample.fn = sample_fn, 
-              out.fn = out_gds_fn, chr.code = 1)
+              out.fn = out_gds_fn, chr.code = 1, call.threshold = 0)
 
 ## The issue is that that SNPRelate package stores in "snp.id" the first column of GEN file which as a chromosome number
 ## and snp ids in a variabled called "snp.rs.id"

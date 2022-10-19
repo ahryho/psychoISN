@@ -14,6 +14,13 @@ library(arrow)
 ```
 
 ```{r}
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
+
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+```
+
+
+```{r}
 knitr::opts_knit$set(root.dir = "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/")
 ```
 
@@ -148,4 +155,38 @@ m <- fread("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/
 m <- m[, -1]
 ```
 
+# 4. Explore GDS SNP file obtained from Oxford gen format
 
+```{r load-snp-gds}
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input")
+snps_gds_fn <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/gds/dex_geno_imputed_maf_from_gen.gds"
+
+snp_mtrx <- LoadGenotype(snps_gds_fn)
+```
+
+```{r}
+summary(snp_mtrx[, 1:5])
+```
+```{r}
+snp_mtrx <- snp_mtrx[rownames(snp_mtrx) %in% colnames(snp_mpip)[-1],]
+```
+
+```{r}
+rs <- "rs3131971"
+
+print(paste0("QTL matrix: table for ", rs))
+table(t(snp_mpip[snp_mpip$SNP == rs, -1]))
+
+print(paste0("GDS matrix: table for ", rs))
+table(snp_mtrx[, rs])
+```
+
+```{r}
+rs <- colnames(snp_mtrx)[4]
+
+print(paste0("QTL matrix: table for ", rs))
+table(t(snp_mpip[snp_mpip$SNP == rs, -1]))
+
+print(paste0("GDS matrix: table for ", rs))
+table(snp_mtrx[, rs])
+```

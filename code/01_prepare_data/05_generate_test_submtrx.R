@@ -4,7 +4,7 @@ library(SNPRelate)
 
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns")
 
-source("~/kul/dex-stim-human-array-isns/code/util.R")
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 
 # 1. Set up global variables
 
@@ -41,7 +41,7 @@ closefn.gds(gds_file)
 
 # 4. Load SNP data
 
-snps_gds_fn <- "input/snps/gds/dex_geno_imputed.gds"
+snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_from_gen.gds.gds"
 snps_mtrx    <- LoadGenotype(snps_gds_fn, is_ld = F)
 
 # 5. Generate test SNP mtrx
