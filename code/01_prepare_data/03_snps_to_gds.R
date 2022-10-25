@@ -36,3 +36,5 @@ delete.gdsn(index.gdsn(snps_gds_file, "snp.id"))
 rename.gdsn(index.gdsn(snps_gds_file, "snp.rs.id"), newname = "snp.id")
 
 closefn.gds(snps_gds_file)
+
+snpgdsVCF2GDS(vcf.fn = snp_vcg_fn, "gds/dex_geno_imputed_original.gds")

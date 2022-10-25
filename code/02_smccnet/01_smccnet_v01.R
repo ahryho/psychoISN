@@ -2,6 +2,12 @@ library(SmCCNet)
 library(gdsfmt)
 library(SNPRelate)
 
+require(data.table)
+
+library(parallel)
+library(foreach)
+library(doParallel)
+
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
@@ -57,12 +63,10 @@ s1 <- 0.7; s2 <- 0.9 # Feature sampling proportions.
 subsample_nr <- 100 # Number of subsamples.
 
 # Create sparsity penalty options.
-pen1 <- seq(.05, .3, by = .05); pen2 <- seq(.05, .3, by = .05) 
-P1P2 <- expand.grid(pen1, pen2) # Map (l1, l2) to (c1, c2).
-c1 <- sqrt(p1 * s1) * P1P2[ , 1]; c1[c1] <- 1
-c2 <- sqrt(p2 * s2) * P1P2[ , 2]; c2[c2 < 1] <- 1
-# Based on prior knowledge we may assume that there are at least as many genes # as miRNAs in each network.
-P1P2 <- P1P2[which(c1>c2), ]
+pen1 <- seq(.05, .3, by = .05)
+pen2 <- seq(.05, .3, by = .05) 
+P1P2 <- expand.grid(pen1, pen2) # Map (l1, l2) to (c1, c2)
+
 # Set a CV directory.
 cv_dir <- paste0("tmp_data/example_", cv_k, "_fold_cv/")
 dir.create(cv_dir)
@@ -71,10 +75,15 @@ dir.create(cv_dir)
 
 set.seed(4828)
 
+# For each of the K-fold we compute the prediction err for each penalty pair
+resCV_inf <- matrix(0, nrow = 2, ncol = cv_k * nrow(P1P2))
+
 fold_test_idx <- split(1:nr_samples, sample(1:nr_samples, cv_k))
 
+i <- 1
+
 for(i in 1:cv_k){
-  idx <- fold_idx[[i]]
+  idx <- fold_test_idx[[i]]
   
   dnam_train <- scale(dnam_mtrx[-idx, ])
   dnam_test  <- scale(dnam_mtrx[idx, ])
@@ -92,19 +101,91 @@ for(i in 1:cv_k){
          column with zero variance.")
   }
   
-  sub_dir <- paste0(cv_dir, "cv_", i, "th")
-  dir.create(sub_dir)
+  # sub_dir <- paste0(cv_dir, "cv_", i, "th")
+  # dir.create(sub_dir)
   
-  save(x1.train, x2.train, yy.train, x1.test, x2.test, yy.test,
-       s1, s2, P1P2, p1, p2, SubsamplingNum, CCcoef,
-       file = paste0(subD, "Data.RData"))
+  no.cores <- detectCores() - 1
+  cl <- makeCluster(no.cores, type = "PSOCK")
+  registerDoParallel(cl)
+  clusterEvalQ(cl, library(SmCCNet))
+  clusterExport(cl, c("dnam_train", "snps_train", "dnam_test", "snps_test", "trait_train", "trait_test", "P1P2", "s1", "s2", "subsample_nr", "nr_samples", "nr_cpgs", "nr_snps", "cc_coef"))
+  res = parSapply(cl, 1:nrow(P1P2), function(idx){
+    # Consider one pair of sparsity penalties at a time.
+    l1 <- P1P2[idx, 1]
+    l2 <- P1P2[idx, 2]
+    # Run SmCCA on the subsamples (Figure 1, Step II)
+    Ws <- getRobustPseudoWeights(dnam_train, snps_train, trait_train, l1, l2,
+                                 s1, s2, NoTrait = FALSE,
+                                 FilterByTrait = FALSE,
+                                 SubsamplingNum = subsample_nr,
+                                 CCcoef = cc_coef,
+                                 trace = FALSE)
+    # Aggregate pseudo-canonical weights from the subsamples.
+    if(is.matrix(Ws)){meanW <- rowMeans(Ws)} else{meanW = Ws}
+    v <- meanW[1:nr_cpgs]
+    u <- meanW[nr_cpgs + 1:nr_snps]
+    
+    # Compute the prediction error for given CV fold and sparsity penalties.
+    if(is.null(cc_coef)){cc_coef <- rep(1, 3)} # Unweighted SmCCA.
+    #rho.train <- cor(dnam_train %*% v, snps_train %*% u) * cc_coef[1]
+    #rho.test <- cor(dnam_test %*% v, snps_test %*% u) * cc_coef[1]
+    rho.train <- cor(dnam_train %*% v, snps_train %*% u) * cc_coef[1] +
+      cor(dnam_train %*% v, trait_train) * cc_coef[2] +
+      cor(snps_train %*% u, trait_train) * cc_coef[3]
+    rho.test <- cor(dnam_test %*% v, snps_test %*% u) * cc_coef[1] +
+      cor(dnam_test %*% v, trait_test) * cc_coef[2] +
+      cor(snps_test %*% u, trait_test) * cc_coef[3]
+    RhoTrain <- round(rho.train, digits = 5)
+    RhoTest <- round(rho.test, digits = 5)
+    DeltaCor <- abs(rho.train - rho.test)
+    
+    return(list(RhoTest=RhoTest, DeltaCor=DeltaCor))
+  })
+  stopCluster(cl)
+  
+  resCV_inf[,((i-1)*nrow(P1P2)+1):(i*nrow(P1P2))] = matrix(unlist(res), nrow = 2)
 }
 
 
-l1 <- P1P2[idx, 1]
-l2 <- P1P2[idx, 2]
-Ws <- getRobustPseudoWeights(dnam_train[, 1:10], snps_train[,1:30], trait_train, l1, l2,
+testCC <- matrix(resCV_inf[1,], nrow = cv_k, byrow = TRUE)
+predError <- matrix(resCV_inf[2,], nrow = cv_k, byrow = TRUE)
+
+# Combine prediction errors from all K folds and compute the total prediction
+# error for each sparsity penalty pair.
+S1 <- colMeans(testCC)
+S2 <- colMeans(predError)
+T12 <- cbind(P1P2, S1, S2)
+colnames(T12) <- c("l1", "l2", "Test CC", "CC Pred. Error")
+
+pen <- which(S2 == min(S2))
+l1 <- T12$l1[pen]
+l2 <- T12$l2[pen]
+print(paste0("Optimal penalty pair (l1, l2): (", l1, ",", l2, ")"))
+
+# 6. Integrate two omics data types and a quantitative phenotype
+
+Ws <- getRobustPseudoWeights(dnam_train, snps_train, trait_train, l1, l2,
                              s1, s2, NoTrait = FALSE,
                              FilterByTrait = FALSE,
                              SubsamplingNum = subsample_nr,
                              CCcoef = cc_coef)
+
+# 7. Compute the similarity matrix based on the canonical correlation weight vectors
+Abar <- getAbar(Ws, FeatureLabel = features)
+
+# 8.  Obtain multi-omics modules
+
+Modules <- getMultiOmicsModules(Abar, nr_cpgs)
+saveRDS(list(weights = Ws, sim_mtrx = Abar, modules = Modules), 
+        file = paste0(cv_dir, "smccnet_res_", cv_k, ".rds"))
+
+
+bigCor <- cor(cbind(dnam_mtrx, snps_mtrx))
+edgeCut <- 0.005
+for(idx in 1:length(Modules)){
+  filename <- paste0(cv_dir, "module_", idx, ".pdf")
+  plotMultiOmicsNetwork(Abar = Abar, CorrMatrix = bigCor,
+                        multiOmicsModule = Modules, ModuleIdx = idx, P1 = nr_cpgs,
+                        EdgeCut = edgeCut, FeatureLabel = features,
+                        SaveFile = filename)
+}
