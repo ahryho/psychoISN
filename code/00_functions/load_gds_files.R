@@ -11,6 +11,8 @@
 LoadGenotype <- function(gds_fn, is_ld = F){
   snps_mtrx = tryCatch(
     {
+      print("Loading Genotype  matrix... ", quote = F)
+      
       snps_gds  <- snpgdsOpen(gds_fn)
       
       # snpset  <- snpgdsLDpruning(snps_gds, ld.threshold=0.2, maf = 0.05, slide.max.bp = 1000000L, slide.max.n = 100, method = "corr")
@@ -24,19 +26,30 @@ LoadGenotype <- function(gds_fn, is_ld = F){
       colnames(snp_mtrx)   <- geno_obj$snp.id
       rownames(snp_mtrx)   <- geno_obj$sample.id
       
+      print("Genotype  matrix has been loaded", quote = F)
       return(snp_mtrx)
     },
     error = function(cond){
       # message(cond)
       
-      snps_gds_file         <- openfn.gds(gds_fn)
-      
-      snps_mtrx             <- read.gdsn(index.gdsn(snps_gds_file, "genotype"))
-      colnames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "snp_id"))
-      rownames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "sample_id"))
-      
-      closefn.gds(snps_gds_file)
-      
+      snps_mtrx = tryCatch(
+        {
+          snps_gds_file         <- openfn.gds(gds_fn)
+          
+          snps_mtrx             <- read.gdsn(index.gdsn(snps_gds_file, "genotype"))
+          colnames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "snp_id"))
+          rownames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "sample_id"))
+          
+          closefn.gds(snps_gds_file)
+          
+          print("Genotype  matrix has been loaded", quote = F)
+          return(snps_mtrx)
+        },
+        error = function(cond){
+          message(cond)
+          return(NA)
+        }
+      )
       return(snps_mtrx)
       }
   )
@@ -53,13 +66,28 @@ LoadGenotype <- function(gds_fn, is_ld = F){
 #'
 #' @examples
 LoadMethyl <- function(gds_fn, is_mad = F){
-  dnam_gds_file         <- openfn.gds(gds_fn)
-  
-  dnam_mtrx             <- read.gdsn(index.gdsn(dnam_gds_file, "beta_mtrx"))
-  colnames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "cpg_id"))
-  rownames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "sample_id"))
-  
-  closefn.gds(dnam_gds_file)
+  dnam_mtrx = tryCatch(
+    {
+      print("Loading DNAm  matrix... ", quote = F)
+      
+      dnam_gds_file         <- openfn.gds(gds_fn)
+      
+      dnam_mtrx             <- read.gdsn(index.gdsn(dnam_gds_file, "beta_mtrx"))
+      colnames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "cpg_id"))
+      rownames(dnam_mtrx)   <- read.gdsn(index.gdsn(dnam_gds_file, "sample_id"))
+      
+      closefn.gds(dnam_gds_file)
+      
+      print("DNAm  matrix has been loaded", quote = F)
+      return(dnam_mtrx)
+    },
+    error = function(cond){
+      print("The DNAm matrix cannot be loaded: ", quote = F)
+      message(cond)
+      
+      return(NA)
+    }
+  )
   
   return(dnam_mtrx)
 }
