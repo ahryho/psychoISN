@@ -1,11 +1,11 @@
 #!/bin/bash
 #
 #SBATCH --job-name=smccnet_cv
-#SBATCH --output=smccnet_cv_%A_%a.out
-#SBATCH --error=smccnet_cv_%A_%a.err
-#SBATCH --mem-per-cpu=2Gb     # Each task uses max 2Gb of memory
+#SBATCH --output=logs/smccnet_cv_%A_%a.out
+#SBATCH --error=logs/smccnet_cv_%A_%a.err
+#SBATCH --mem=900Gb     # Each task uses max 2Gb of memory
 #SBATCH --part=pe
-#SBATCH --exclude=hp01,hp02,pe6
+#SBATCH --nodelist=pe7
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=anastasiia_hry@psych.mpg.de
 

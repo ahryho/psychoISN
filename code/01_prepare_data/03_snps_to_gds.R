@@ -9,7 +9,9 @@ snp_bed_fn <- "dex_geno_imputed.bed"
 snp_bim_fn <- "dex_geno_imputed.bim"
 snp_fam_fn <- "dex_geno_imputed.fam"
 
-snpgdsBED2GDS(bed.fn = snp_bed_fn, fam.fn = snp_fam_fn, bim.fn = snp_bim_fn, "gds/dex_geno_imputed.gds")
+out_gds_fn <- "gds/dex_geno_imputed.gds"
+
+snpgdsBED2GDS(bed.fn = snp_bed_fn, fam.fn = snp_fam_fn, bim.fn = snp_bim_fn, out_gds_fn)
 
 # 2. Transform and save VCF file using SNPRelate package
 
