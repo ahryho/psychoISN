@@ -32,9 +32,11 @@ snps_gds_fn <- paste0("input/snps/gds/chromosomes/dex_geno_chr", chr, ".gds")
 
 cv_k    <- 5
 # cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
-cv_dir  <- paste0("tmp_data/example_chr_1", cv_k, "_fold_cv/")
+cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
 
 # 2. Load DNAm beta mtrx
+
+tic("Total computation time")
 
 tic("Load DNAm")
 dnam_mtrx <- LoadMethyl(dnam_gds_fn, is_mad = F)
@@ -232,12 +234,18 @@ tic("Obtain mult-mics modules")
 
 modules <- getMultiOmicsModules(sim_mtrx, nr_cpgs)
 
-print(paste0("Multi-omics modules have been obtained and saved into ", cv_dir), quote = F)
+print("Multi-omics modules have been obtained", quote = F)
 print(paste0("End date and time: ", Sys.time()), quote = F)
 toc()
 
 print("Start saving multi-omics modules ...", quote = F)
 tic("Save mult-mics modules as RDS object")
+
 saveRDS(list(weights = Ws, sim_mtrx = sim_mtrx, modules = modules), 
-        file = paste0(cv_dir, "smccnet_res_", cv_k, ".rds"))
+        file = paste0(cv_dir, "smccnet_res_chr_", chr, "_", cv_k, "_fold_cv.rds"))
+
+print(paste0("Multi-omics modules have been saved into ", cv_dir), quote = F)
+print(paste0("End date and time: ", Sys.time()), quote = F)
+toc()
+
 toc()
