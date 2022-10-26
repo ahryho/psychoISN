@@ -13,20 +13,26 @@ LoadPackages(pkgs_list)
 # 1. Set up global variables
 
 args        <- commandArgs(T)
-treatment   <- as.character(args[1]) #"veh"
-pheno_trait <- "Status"
+treatment   <- as.character(args[1]) 
+chr         <- 1
+treatment   <- "veh"
+pheno_trait <- c("Status")
 
-dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov",
-                    "_", treatment, ".gds")
-snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_from_gen.gds"
-# 
-# dnam_gds_fn   <- paste0("input/test_data/methyl_beta_mtrx_corrected_for_cov",  
-#                          "_", treatment, ".gds") 
+# dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov",
+#                     "_", treatment, ".gds")
+# snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_from_gen.gds"
+
+
+# dnam_gds_fn   <- paste0("input/test_data/methyl_beta_mtrx_corrected_for_cov",
+#                         "_", treatment, ".gds")
 # snps_gds_fn   <- "input/test_data/dex_geno_imputed.gds"
 
+dnam_gds_fn <- paste0("input/dnam/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
+snps_gds_fn <- paste0("input/snps/gds/chromosomes/dex_geno_chr", chr, ".gds")
+
 cv_k    <- 5
-cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
-# cv_dir  <- paste0("tmp_data/example_", cv_k, "_fold_cv/")
+# cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
+cv_dir  <- paste0("tmp_data/example_chr_1", cv_k, "_fold_cv/")
 
 # 2. Load DNAm beta mtrx
 
@@ -37,12 +43,12 @@ toc()
 # 3. Load SNP data
 
 tic("Load Genotype mtrx")
-snps_mtrx    <- LoadGenotype(snps_gds_fn, is_ld = F)
+snps_mtrx <- LoadGenotype(snps_gds_fn, is_ld = F)
 toc()
 
 # 4. Load pheno trait
 
-pheno           <- fread("input/pheno/pheno_full_for_kimono.csv")[Include == T]
+pheno           <- fread("input/pheno/pheno_full_for_kimono.csv", dec = ",")[Include == T]
 pheno_treatmnet <- pheno[Dex == ifelse(treatment == "veh", 0, 1)]
 pheno_trait_vec <- pheno_treatmnet[, ..pheno_trait]
 
@@ -112,12 +118,13 @@ for(i in 1:cv_k){
          column with zero variance, iteration = ", idx, "\n"))
   }
   
-  no.cores <- detectCores() - 1
-  cl <- makeCluster(no.cores, type = "PSOCK")
+  no.cores <- as.integer(detectCores() / 2 * 3)
+  cl <- makeCluster(no.cores, type = "FORK")
   registerDoParallel(cl)
   
   clusterEvalQ(cl, library(SmCCNet))
-  clusterExport(cl, c("dnam_train", "snps_train", "dnam_test", "snps_test", "trait_train", "trait_test", "penalty_grid", "s1", "s2", "subsample_nr", "nr_samples", "nr_cpgs", "nr_snps", "cc_coef"))
+  clusterExport(cl, c("dnam_train", "snps_train", "dnam_test", "snps_test", "trait_train", "trait_test", 
+                      "penalty_grid", "s1", "s2", "subsample_nr", "nr_samples", "nr_cpgs", "nr_snps", "cc_coef"))
   
   res <- parSapply(cl, 1:nrow(penalty_grid), function(idx){
     # Consider one pair of sparsity penalties at a time.
