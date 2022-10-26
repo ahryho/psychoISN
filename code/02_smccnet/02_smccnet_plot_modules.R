@@ -14,11 +14,11 @@ setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
 
 treatment <- "veh"
 cv_k      <- 5
-cv_dir    <- paste0("tmp_data/example_", cv_k, "_fold_cv/")
+cv_dir    <- paste0("tmp_data/example_chr_1", cv_k, "_fold_cv/")
 
 # 2. Load SmCCNet results 
 
-modules <- readRDS(file = paste0(cv_dir, "smccnet_res_", cv_k, ".rds"))
+modules <- readRDS(file = paste0(cv_dir, "smccnet_res_chr_", chr, "_", cv_k, "_fold_cv.rds"))
 
 # 3. Plot modules 
 
