@@ -22,12 +22,13 @@ LoadGenotype <- function(gds_fn, is_ld = F){
       
       snpgdsClose(snps_gds)
       
-      snp_mtrx             <- geno_obj$genotype
-      colnames(snp_mtrx)   <- geno_obj$snp.id
-      rownames(snp_mtrx)   <- geno_obj$sample.id
+      snps_mtrx             <- geno_obj$genotype
+      colnames(snps_mtrx)   <- geno_obj$snp.id
+      rownames(snsp_mtrx)   <- geno_obj$sample.id
       
       print("Genotype  matrix has been loaded", quote = F)
-      return(snp_mtrx)
+      print(paste0("Genotype matrix: ", nrow(snps_mtrx), " x ", ncol(snps_mtrx)), quote = F)
+      return(snps_mtrx)
     },
     error = function(cond){
       # message(cond)
@@ -43,6 +44,7 @@ LoadGenotype <- function(gds_fn, is_ld = F){
           closefn.gds(snps_gds_file)
           
           print("Genotype  matrix has been loaded", quote = F)
+          print(paste0("Genotype matrix: ", nrow(snps_mtrx), " x ", ncol(snps_mtrx)), quote = F)
           return(snps_mtrx)
         },
         error = function(cond){
@@ -79,6 +81,7 @@ LoadMethyl <- function(gds_fn, is_mad = F){
       closefn.gds(dnam_gds_file)
       
       print("DNAm  matrix has been loaded", quote = F)
+      print(paste0("Genotype matrix: ", nrow(dnam_mtrx), " x ", ncol(dnam_mtrx)), quote = F)
       return(dnam_mtrx)
     },
     error = function(cond){
