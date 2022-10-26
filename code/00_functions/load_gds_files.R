@@ -27,7 +27,7 @@ LoadGenotype <- function(gds_fn, is_ld = F){
       rownames(snsp_mtrx)   <- geno_obj$sample.id
       
       print("Genotype  matrix has been loaded", quote = F)
-      print(paste0("Genotype matrix: ", nrow(snps_mtrx), " x ", ncol(snps_mtrx)), quote = F)
+      print(paste0("DNAm matrix: ", nrow(snps_mtrx), " x ", ncol(snps_mtrx)), quote = F)
       return(snps_mtrx)
     },
     error = function(cond){
