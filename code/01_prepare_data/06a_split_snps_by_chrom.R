@@ -39,7 +39,7 @@ colnames(mtrx) <- snp_ids
 
 # 5. Create and save GDS for each chrom
 
-lapply(2:length(loc_lst), function(chr){
+lapply(1:length(loc_lst), function(chr){
   out_gds_fn   <- paste0("gds/chromosomes/dex_geno_chr", chr, ".gds")
   
   loc_chr_df <- loc_lst[[chr]]
