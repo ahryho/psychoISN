@@ -14,21 +14,16 @@ LoadPackages(pkgs_list)
 
 args        <- commandArgs(T)
 treatment   <- as.character(args[1]) 
-chr         <- 1
-treatment   <- "veh"
+chr         <- "all_dim_reduction"
+# treatment   <- "veh"
 pheno_trait <- c("Status")
 
-# dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov",
-#                     "_", treatment, ".gds")
-# snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_from_gen.gds"
+dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov_mad_filtered",
+                   "_", treatment, ".gds")
+snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds"
 
-
-# dnam_gds_fn   <- paste0("input/test_data/methyl_beta_mtrx_corrected_for_cov",
-#                         "_", treatment, ".gds")
-# snps_gds_fn   <- "input/test_data/dex_geno_imputed.gds"
-
-dnam_gds_fn <- paste0("input/dnam/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
-snps_gds_fn <- paste0("input/snps/gds/chromosomes/dex_geno_chr", chr, ".gds")
+# dnam_gds_fn <- paste0("input/dnam/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
+# snps_gds_fn <- paste0("input/snps/gds/chromosomes/dex_geno_chr", chr, ".gds")
 
 cv_k    <- 5
 # cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
@@ -78,7 +73,7 @@ s1      <- 0.5
 s2      <- 0.9 
 
 #### Number of subsamples
-subsample_nr <- 100
+subsample_nr <- 50
 
 ### 5.2.2. Create sparsity penalty options.
 penalty_1 <- seq(.05, .3, by = .05)
@@ -120,7 +115,7 @@ for(i in 1:cv_k){
          column with zero variance, iteration = ", idx, "\n"))
   }
   
-  no.cores <- as.integer(detectCores() / 2 * 3)
+  no.cores <- as.integer(detectCores() * 0.8)
   cl <- makeCluster(no.cores, type = "FORK")
   registerDoParallel(cl)
   

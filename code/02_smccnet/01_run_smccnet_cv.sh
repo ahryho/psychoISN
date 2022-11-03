@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 #SBATCH --job-name=smccnet_cv
-#SBATCH --output=logs/smccnet_cv_%A_%a.out
-#SBATCH --error=logs/smccnet_cv_%A_%a.err
-#SBATCH --mem=900Gb     # Each task uses max 2Gb of memory
+#SBATCH --output=logs/smccnet_cv_%A.out
+#SBATCH --error=logs/smccnet_cv_%A.err
+#SBATCH --mem=900Gb    
 #SBATCH --part=pe
 #SBATCH --nodelist=pe7
 #SBATCH --mail-type=FAIL,END
