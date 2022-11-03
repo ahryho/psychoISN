@@ -19,10 +19,10 @@ mad_val_df  <- fread(mad_val_fn)
 # 2. Subset mad values based on threshold: take the intersection of baseline and dex CpGs 
 # The CpGs should be the same for two time points
 
-mad_thr <- 90 # = 90%
+mad_thr <- 80 # = 80%
 
-mad_val_thr_veh  <- mad_val_df[treatment == "veh"][perc >= (100 - mad_thr)][, CpG_ID]
-mad_val_thr_dex  <- mad_val_df[treatment == "dex"][perc >= (100 - mad_thr)][, CpG_ID]
+mad_val_thr_veh  <- mad_val_df[treatment == "veh"][perc >= (mad_thr)][, CpG_ID]
+mad_val_thr_dex  <- mad_val_df[treatment == "dex"][perc >= (mad_thr)][, CpG_ID]
 
 mad_val_thr_cpgs <- intersect(mad_val_thr_veh, mad_val_thr_dex)
 
@@ -43,7 +43,7 @@ cpg_loc    <- cpg_loc[order_idx, ]
 
 ## 4.2. Create a GDS object
 
-gds_fn   <- paste0("gds/methyl_beta_mtrx_corrected_for_cov_mad_filtered",  
+gds_fn   <- paste0("gds/methyl_beta_mtrx_corrected_for_cov_mad", mad_thr, "_filtered",  
                    "_", treatment, ".gds") 
 
 gds_file <- createfn.gds(gds_fn)

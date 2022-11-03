@@ -5,7 +5,7 @@
 #SBATCH --error=logs/smccnet_cv_%A.err
 #SBATCH --mem=900Gb    
 #SBATCH --part=pe
-#SBATCH --nodelist=pe7
+#SBATCH --nodelist=pe5
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=anastasiia_hry@psych.mpg.de
 

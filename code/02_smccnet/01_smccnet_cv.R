@@ -14,11 +14,11 @@ LoadPackages(pkgs_list)
 
 args        <- commandArgs(T)
 treatment   <- as.character(args[1]) 
-chr         <- "all_dim_reduction"
+chr         <- "all_dim_reduction_mad_80"
 # treatment   <- "veh"
 pheno_trait <- c("Status")
 
-dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov_mad_filtered",
+dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered",
                    "_", treatment, ".gds")
 snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds"
 
