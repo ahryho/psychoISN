@@ -159,7 +159,7 @@ m <- m[, -1]
 
 ```{r load-snp-gds}
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input")
-snps_gds_fn <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/gds/dex_geno_imputed_maf_from_gen.gds"
+snps_gds_fn <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds"
 
 snp_mtrx <- LoadGenotype(snps_gds_fn)
 ```
