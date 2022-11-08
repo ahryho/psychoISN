@@ -20,7 +20,7 @@ pheno_trait <- c("Status")
 
 dnam_gds_fn <- paste0("input/dnam/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered",
                    "_", treatment, ".gds")
-snps_gds_fn <- "input/snps/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds"
+snps_gds_fn <- "input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds"
 
 # dnam_gds_fn <- paste0("input/dnam/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
 # snps_gds_fn <- paste0("input/snps/gds/chromosomes/dex_geno_chr", chr, ".gds")
@@ -31,7 +31,7 @@ cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
 
 # 2. Load DNAm beta mtrx
 
-tic("Total computation time")
+tic("Total computation time of SmCCNet CV")
 
 tic("Load DNAm")
 dnam_mtrx <- LoadMethyl(dnam_gds_fn, is_mad = F)
@@ -174,7 +174,7 @@ pred_error <- matrix(res_cv_penaltiy_grid[2,], nrow = cv_k, byrow = TRUE)
 avg_test_cc     <- colMeans(test_cc)
 avg_pred_error  <- colMeans(pred_error)
 total_pred_grid <- cbind(penalty_grid, avg_test_cc, avg_pred_error)
-colnames(total_pred_grid) <- c("l1", "l2", "Test CC", "CC Pred Error")
+colnames(total_pred_grid) <- c("l1", "l2", "test_cc", "pred_error")
 
 print("Saving the total prediction error for each sparsity penalty pair...", quote = F)
 tic("Save prediction")
@@ -183,7 +183,7 @@ fwrite(total_pred_grid,
        paste0(cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"),
        quote = F, row.names = F, sep = ";")
 
-print("Prediction has been saved", quote = F)
+print(paste("Prediction has been saved into ", cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"), quote = F)
 toc()
 
 #### Extract optimal penalties
@@ -192,55 +192,5 @@ l1 <- total_pred_grid$l1[min_penalty]
 l2 <- total_pred_grid$l2[min_penalty]
 
 print(paste0("Optimal penalty pair (lambda 1, lambda 2): (", l1, ", ", l2, ")"))
-
-# 6. Integrate two omic data types and a quantitative phenotype
-
-print("Start calculation of the canonical correlation weights using optimal penaltiy values ...", quote = F)
-print(paste0("Start date and time: ", Sys.time()), quote = F)
-tic("Canonical weights computation")
-
-Ws <- getRobustPseudoWeights(dnam_train, snps_train, trait_train, l1, l2,
-                             s1, s2, NoTrait = FALSE,
-                             FilterByTrait = FALSE,
-                             SubsamplingNum = subsample_nr,
-                             CCcoef = cc_coef)
-
-print("The canonical correlation weights has been calculated", quote = F)
-print(paste0("End date and time: ", Sys.time()), quote = F)
-toc()
-
-# 7. Compute the similarity matrix based on the canonical correlation weight vectors
-
-print("Start computation of the similarity matrix ...", quote = F)
-print(paste0("Start date and time: ", Sys.time()), quote = F)
-tic("Similarity matrix computation")
-
-sim_mtrx <- getAbar(Ws, FeatureLabel = features)
-
-print("The similarity matrix has been calculated", quote = F)
-print(paste0("End date and time: ", Sys.time()), quote = F)
-toc()
-
-# 8.  Obtain multi-omics modules
-
-print("Start obtaining multi-omics modules ...", quote = F)
-print(paste0("Start date and time: ", Sys.time()), quote = F)
-tic("Obtain mult-mics modules")
-
-modules <- getMultiOmicsModules(sim_mtrx, nr_cpgs)
-
-print("Multi-omics modules have been obtained", quote = F)
-print(paste0("End date and time: ", Sys.time()), quote = F)
-toc()
-
-print("Start saving multi-omics modules ...", quote = F)
-tic("Save mult-mics modules as RDS object")
-
-saveRDS(list(weights = Ws, sim_mtrx = sim_mtrx, modules = modules), 
-        file = paste0(cv_dir, "smccnet_res_chr_", chr, "_", cv_k, "_fold_cv.rds"))
-
-print(paste0("Multi-omics modules have been saved into ", cv_dir), quote = F)
-print(paste0("End date and time: ", Sys.time()), quote = F)
-toc()
 
 toc()
