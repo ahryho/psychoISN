@@ -6,8 +6,7 @@ in_gds_fn         <- as.character(args[2])
 out_gds_fn_prefix <- as.character(args[3]) 
 
 # treatment <- "veh"
-# in_gds_fn <- paste0("gds/methyl_beta_mtrx_corrected_for_cov",
-#                    "_", treatment, ".gds")
+# in_gds_fn <- paste0("mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad75_filtered", "_", treatment, ".gds")
 
 # 2. Load packages
 
@@ -21,7 +20,7 @@ LoadPackages(pkgs_list)
 
 # 3. Load SNP GDS object
 
-gds_file <- openfn.gds(in_gds_fn)
+gds_file   <- openfn.gds(in_gds_fn)
 
 mtrx       <- read.gdsn(index.gdsn(gds_file, "beta_mtrx"))
 cpg_ids    <- read.gdsn(index.gdsn(gds_file, "cpg_id"))
@@ -44,7 +43,7 @@ colnames(mtrx) <- cpg_ids
 
 system(paste0("mkdir -p ", out_gds_fn_prefix, "chromosomes/", treatment))
 
-lapply(2:length(loc_lst), function(chr){
+lapply(1:length(loc_lst), function(chr){
   out_gds_fn   <- paste0(out_gds_fn_prefix, "chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov",
                          "_", treatment, "_chr", chr, ".gds")
   
