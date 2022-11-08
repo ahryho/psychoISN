@@ -81,7 +81,7 @@ LoadMethyl <- function(gds_fn, is_mad = F){
       closefn.gds(dnam_gds_file)
       
       print("DNAm  matrix has been loaded", quote = F)
-      print(paste0("Genotype matrix: ", nrow(dnam_mtrx), " x ", ncol(dnam_mtrx)), quote = F)
+      print(paste0("DNAm matrix: ", nrow(dnam_mtrx), " x ", ncol(dnam_mtrx)), quote = F)
       return(dnam_mtrx)
     },
     error = function(cond){
