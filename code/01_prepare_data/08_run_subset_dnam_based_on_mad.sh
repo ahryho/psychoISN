@@ -1,8 +1,6 @@
-# LD pruning on MAFed genotypes
+# DNAm MAD filtering
 
 cd /binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam
-
-# MAD filtering
 
 treatment="dex"
 mad_thr=75
