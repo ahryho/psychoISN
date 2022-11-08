@@ -30,3 +30,10 @@ sample_gen_fn="ld_pruned/gen/dex_geno_imputed_maf_ld_pruned.sample"
 out_gds_fn="ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds"
 
 Rscript --vanilla ~/kul/dex-stim-human-array-isns/code/00_functions/gen2gds.R $snp_gen_fn $sample_gen_fn $out_gds_fn
+
+# Split by chromosome
+
+out_gds_fn_prefix="ld_pruned/gds/"
+
+Rscript --vanilla ~/kul/dex-stim-human-array-isns/code/01_prepare_data/06a_split_snps_by_chrom.R $out_gds_fn $out_gds_fn_prefix \
+>> /binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/ld_pruned/logs/split_snps_gds_by_chrom.log
