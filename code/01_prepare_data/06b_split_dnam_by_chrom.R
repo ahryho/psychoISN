@@ -1,26 +1,27 @@
+# 1. Set up global variables
+
+args              <- commandArgs(T)
+treatment         <- as.character(args[1]) 
+in_gds_fn         <- as.character(args[2]) 
+out_gds_fn_prefix <- as.character(args[3]) 
+
+# treatment <- "veh"
+# in_gds_fn <- paste0("gds/methyl_beta_mtrx_corrected_for_cov",
+#                    "_", treatment, ".gds")
+
+# 2. Load packages
+
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam/")
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_pkgs.R")
 
-pkgs_list <- c("dplyr",
-               "gdsfmt", "SNPRelate",
-               "parallel", "foreach", "doParallel", 
-               "tictoc")
+pkgs_list <- c("dplyr", "gdsfmt")
 
 LoadPackages(pkgs_list)
 
-# 1. Set up global variables
+# 3. Load SNP GDS object
 
-args   <- commandArgs(T)
-gds_fn <-  as.character(args[1]) 
-
-treatment <- "veh"
-gds_fn    <- paste0("gds/methyl_beta_mtrx_corrected_for_cov",
-                    "_", treatment, ".gds")
-
-# 2. Load SNP GDS object
-
-gds_file <- openfn.gds(gds_fn)
+gds_file <- openfn.gds(in_gds_fn)
 
 mtrx       <- read.gdsn(index.gdsn(gds_file, "beta_mtrx"))
 cpg_ids    <- read.gdsn(index.gdsn(gds_file, "cpg_id"))
@@ -30,19 +31,21 @@ sample_ids <- read.gdsn(index.gdsn(gds_file, "sample_id"))
 
 closefn.gds(gds_file)
 
-# 3. Create a genomic location df
+# 4. Create a genomic location df
 
 loc_df     <- data.frame(CpG_ID = cpg_ids, chr, pos)
 loc_lst    <- split(loc_df, f = loc_df$chr)
 
-# 4. Prepare mtrx
+# 5. Prepare mtrx
 
 colnames(mtrx) <- cpg_ids
 
-# 5. Create and save GDS for each chrom
+# 6. Create and save GDS for each chrom
+
+system(paste0("mkdir -p ", out_gds_fn_prefix, "chromosomes/", treatment))
 
 lapply(2:length(loc_lst), function(chr){
-  out_gds_fn   <- paste0("gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov",
+  out_gds_fn   <- paste0(out_gds_fn_prefix, "chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov",
                          "_", treatment, "_chr", chr, ".gds")
   
   loc_chr_df <- loc_lst[[chr]]
