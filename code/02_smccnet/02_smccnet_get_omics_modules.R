@@ -14,8 +14,8 @@ LoadPackages(pkgs_list)
 
 args        <- commandArgs(T)
 treatment   <- as.character(args[1]) 
-chr         <- as.character(args[2])  # "all_dim_reduction_mad_80"
-cv_k        <- as.character(args[3])
+chr         <- as.numeric(args[2])  # "all_dim_reduction_mad_80"
+cv_k        <- as.numeric(args[3])
 cv_dir      <- as.character(args[4])
 dnam_gds_fn <- as.character(args[5])
 snps_gds_fn <- as.character(args[6])
@@ -53,14 +53,18 @@ pheno_trait_vec <- pheno_treatmnet[, ..pheno_trait]
 
 ## 5.1. Set up variables
 
+nr_cpgs    <- ncol(dnam_mtrx)
+nr_snps    <- ncol(snps_mtrx)
+nr_samples <- nrow(snps_mtrx)
+
 dnam_mtrx <- dnam_mtrx[pheno_treatmnet$DNA_ID, ]
 snps_mtrx <- snps_mtrx[pheno_treatmnet$DNA_ID, ]
 
-## 5.2 Determine optimal sparsity penalties through CV 
+features <- c(colnames(dnam_mtrx), colnames(snps_mtrx))
 
-### 5.2.1. Set up parameters
+## 5.2. Set up SmCCNaet parameters
 
-cc_coef <- NULL # Unweighted version of SmCCNet.
+cc_coef  <- NULL # Unweighted version of SmCCNet.
 
 #### Feature sampling proportions. 
 s1      <- 0.5 
@@ -71,7 +75,7 @@ subsample_nr <- 50
 
 #### Extract optimal penalties
 
-total_pred_grid <- fread(paste0(cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"))
+total_pred_grid <- fread(paste0(cv_dir, "/cv_prediction_grid_", cv_k, "_fold.csv"))
 min_penalty     <- total_pred_grid[pred_error == min(pred_error)]
 l1 <- min_penalty$l1
 l2 <- min_penalty$l2
@@ -94,15 +98,15 @@ print("The canonical correlation weights has been calculated", quote = F)
 print(paste0("End date and time: ", Sys.time()), quote = F)
 toc()
 
-print("Saving the canonical correlation (CC) weights...", quote = F)
-tic("Save CC weights")
-
-fwrite(Ws, 
-       paste0(cv_dir, "smccnet_cc_weights.csv"),
-       quote = F, row.names = F, sep = ";")
-
-print(paste("CC weights has been saved into ", cv_dir, "smccnet_cc_weights_chr_", chr, ".csv"), quote = F)
-toc()
+# print("Saving the canonical correlation (CC) weights...", quote = F)
+# tic("Save CC weights")
+# 
+# fwrite(Ws, 
+#        paste0(cv_dir, "/smccnet_cc_weights.csv"),
+#        quote = F, row.names = F, sep = ";")
+# 
+# print(paste("CC weights has been saved into ", cv_dir, "smccnet_cc_weights_chr_", chr, ".csv"), quote = F)
+# toc()
 
 gc()
 
@@ -136,7 +140,7 @@ print("Start saving multi-omics modules ...", quote = F)
 tic("Save mult-mics modules as RDS object")
 
 saveRDS(list(weights = Ws, sim_mtrx = sim_mtrx, modules = modules), 
-        file = paste0(cv_dir, "smccnet_omic_modules_chr_", chr, ".rds"))
+        file = paste0(cv_dir, "/smccnet_omic_modules_chr_", chr, ".rds"))
 
 print(paste0("Multi-omics modules have been saved into ", cv_dir), quote = F)
 print(paste0("End date and time: ", Sys.time()), quote = F)

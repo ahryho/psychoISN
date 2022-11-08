@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #SBATCH --job-name=smccnet
-#SBATCH --output=logs/smccnet_%A_%a.out
-#SBATCH --error=logs/smccnet_%A_%a.err
+#SBATCH --output=logs/chromosomes/smccnet_%A_%a.out
+#SBATCH --error=logs/chromosomes/smccnet_%A_%a.err
 #SBATCH --mem-per-cpu=100Gb     # Each task uses max 100 Gb of memory
-#SBATCH --array=1-22%22         # Submit 22 tasks. Run max 22 concurrently
+#SBATCH --array=1-21         # Submit 22 tasks. Run max 22 concurrently
 #SBATCH --part=pe
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=anastasiia_hry@psych.mpg.de

@@ -14,8 +14,8 @@ LoadPackages(pkgs_list)
 
 args        <- commandArgs(T)
 treatment   <- as.character(args[1]) 
-chr         <- as.character(args[2])  # "all_dim_reduction_mad_80"
-cv_k        <- as.character(args[3])
+chr         <- as.numeric(args[2])  # "all_dim_reduction_mad_80"
+cv_k        <- as.numeric(args[3])
 cv_dir      <- as.character(args[4])
 dnam_gds_fn <- as.character(args[5])
 snps_gds_fn <- as.character(args[6])
@@ -24,7 +24,7 @@ pheno_trait <- c("Status")
 
 # treatment <- "veh"
 # dnam_gds_fn <- paste0("input/dnam/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
-# snps_gds_fn <- paste0("input/snps/gds/chromosomes/dex_geno_chr", chr, ".gds")
+# snps_gds_fn <- paste0("input/snps/ld_pruned/gds/chromosomes/dex_geno_chr", chr, ".gds")
 # cv_k    <- 5
 # cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
 # cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
@@ -81,7 +81,7 @@ penalty_2 <- seq(.05, .3, by = .05)
 penalty_grid <- expand.grid(penalty_1, penalty_2)
 
 #### Set a CV directory.
-dir.create(cv_dir)
+system(paste0("mkdir -p ", cv_dir))
 
 ### 5.2.3. Create training and test data
 
@@ -182,7 +182,7 @@ print("Saving the total prediction error for each sparsity penalty pair...", quo
 tic("Save prediction")
 
 fwrite(total_pred_grid, 
-       paste0(cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"),
+       paste0(cv_dir, "/cv_prediction_grid_", cv_k, "_fold.csv"),
        quote = F, row.names = F, sep = ";")
 
 print(paste("Prediction has been saved into ", cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"), quote = F)

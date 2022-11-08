@@ -4,7 +4,7 @@
 #SBATCH --output=logs/chromosomes/smccnet_%A_%a.out
 #SBATCH --error=logs/chromosomes/smccnet_%A_%a.err
 #SBATCH --mem-per-cpu=100Gb     # Each task uses max 100 Gb of memory
-#SBATCH --array=21         # Submit 22 tasks. Run max 22 concurrently
+#SBATCH --array=1-21         # Submit 22 tasks. Run max 22 concurrently
 #SBATCH --part=pe
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=anastasiia_hry@psych.mpg.de
@@ -20,7 +20,7 @@ module load R
 dir_prefix=/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns
 
 treatment=veh
-chrom=$(($SLURM_ARRAY_TASK_ID+1))
+chrom=$(($SLURM_ARRAY_TASK_ID))
 cv_k=5
 cv_dir=${dir_prefix}/results/${cv_k}_fold_cv/chromosomes/${chrom}
 
