@@ -41,7 +41,7 @@ colnames(mtrx) <- snp_ids
 
 # 6. Create and save GDS for each chrom
 
-system(paste0("mkdir -p ", out_gds_fn_prefix, "chromosomes"))
+system(paste0("mkdir -p ", out_gds_fn_prefix, "chromosomes", treatment))
 
 lapply(1:length(loc_lst), function(chr){
   out_gds_fn   <- paste0(out_gds_fn_prefix, "chromosomes/dex_geno_chr", chr, ".gds")
