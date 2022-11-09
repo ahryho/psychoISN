@@ -17,7 +17,7 @@ setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
 treatment <- "veh"
 cv_k      <- 5
 cv_dir    <- paste0("results/", cv_k, "_fold_cv/chromosomes/")
-chr       <- 22
+chr       <- 1
 
 dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
 snps_gds_fn <- paste0("input/snps/ld_pruned/gds/chromosomes/dex_geno_chr", chr, ".gds")
