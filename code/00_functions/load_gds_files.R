@@ -38,8 +38,17 @@ LoadGenotype <- function(gds_fn, is_ld = F){
           snps_gds_file         <- openfn.gds(gds_fn)
           
           snps_mtrx             <- read.gdsn(index.gdsn(snps_gds_file, "genotype"))
-          colnames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "snp_id"))
-          rownames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "sample_id"))
+          
+          # If node "snp_id" exists, load it, otherwise, load "snp.id"
+          # The "snp_id" node name is relevant to data splitted by chrom, 
+          # meanwhile "snp.id" node name is relevent for full unsplitted genome 
+          colnames(snps_mtrx)   <- if (exist.gdsn(snps_gds_file, "snp_id") == T) 
+            read.gdsn(index.gdsn(snps_gds_file, "snp_id")) else 
+              read.gdsn(index.gdsn(snps_gds_file, "snp.id"))
+          
+          rownames(snps_mtrx)   <- if (exist.gdsn(snps_gds_file, "sample_id") == T) 
+              read.gdsn(index.gdsn(snps_gds_file, "sample_id")) else 
+                read.gdsn(index.gdsn(snps_gds_file, "sample.id"))
           
           closefn.gds(snps_gds_file)
           
@@ -93,4 +102,91 @@ LoadMethyl <- function(gds_fn, is_mad = F){
   )
   
   return(dnam_mtrx)
+}
+
+#' Load CpGs' genomic coordinates
+#'
+#' @param gds_fn 
+#' @param is_mad 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+LoadMethylCoordinates <- function(gds_fn){
+  loc = tryCatch(
+    {
+      print("Loading coordintaes... ", quote = F)
+      
+      gds_file         <- openfn.gds(gds_fn)
+      
+      id   <- read.gdsn(index.gdsn(gds_file, "cpg_id"))
+      chr  <- read.gdsn(index.gdsn(gds_file, "cpg_chr"))
+      pos  <- read.gdsn(index.gdsn(gds_file, "cpg_pos"))
+      
+      closefn.gds(gds_file)
+      
+      print("Coordintaes have been loaded", quote = F)
+      
+      loc  <- cbind(CpG_ID = id, chr = chr, pos = pos)
+      
+      print(paste0("Number of CpGs: ", nrow(loc)), quote = F)
+      return(loc)
+    },
+    error = function(cond){
+      print("The DNAm matrix cannot be loaded: ", quote = F)
+      message(cond)
+      
+      return(NA)
+    }
+  )
+  
+  return(loc)
+}
+
+#' Load SNPs' genomic coordinates
+#'
+#' @param gds_fn 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+LoadGenotypeCoordinates <- function(gds_fn){
+  loc = tryCatch(
+    {
+      print("Loading coordintaes... ", quote = F)
+      
+      gds_file         <- openfn.gds(gds_fn)
+
+      id   <- if (exist.gdsn(gds_file, "snp_id") == T) 
+        read.gdsn(index.gdsn(gds_file, "snp_id")) else 
+          read.gdsn(index.gdsn(gds_file, "snp.id"))
+      
+      chr  <- if (exist.gdsn(gds_file, "snp_chr") == T) 
+        read.gdsn(index.gdsn(gds_file, "snp_chr")) else 
+          read.gdsn(index.gdsn(gds_file, "snp.chromosome"))
+      
+      pos  <- if (exist.gdsn(gds_file, "snp_pos") == T) 
+        read.gdsn(index.gdsn(gds_file, "snp_pos")) else 
+          read.gdsn(index.gdsn(gds_file, "snp.position"))
+      
+      closefn.gds(gds_file)
+      
+      print("Coordintaes have been loaded", quote = F)
+      
+      loc  <- cbind(SNP = id, chr = chr, pos = pos)
+      
+      print(paste0("Number of CpGs: ", nrow(loc)), quote = F)
+      return(loc)
+    },
+    error = function(cond){
+      print("The Genotype matrix cannot be loaded: ", quote = F)
+      message(cond)
+      
+      return(NA)
+    }
+  )
+  
+  return(loc)
 }

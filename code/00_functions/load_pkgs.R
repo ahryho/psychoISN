@@ -8,6 +8,7 @@ LoadPackages <- function(pkg.list){
       
       error = function(cond){
         tryCatch(
+          if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager"),
           BiocManager::install(new.pkg, dependencies = TRUE),
           
           error = function(cond){
