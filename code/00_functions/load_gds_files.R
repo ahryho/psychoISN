@@ -38,8 +38,17 @@ LoadGenotype <- function(gds_fn, is_ld = F){
           snps_gds_file         <- openfn.gds(gds_fn)
           
           snps_mtrx             <- read.gdsn(index.gdsn(snps_gds_file, "genotype"))
-          colnames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "snp_id"))
-          rownames(snps_mtrx)   <- read.gdsn(index.gdsn(snps_gds_file, "sample_id"))
+          
+          # If node "snp_id" exists, load it, otherwise, load "snp.id"
+          # The "snp_id" node name is relevant to data splitted by chrom, 
+          # meanwhile "snp.id" node name is relevent for full unsplitted genome 
+          colnames(snps_mtrx)   <- if (exist.gdsn(snps_gds_file, "snp_id") == T) 
+            read.gdsn(index.gdsn(snps_gds_file, "snp_id")) else 
+              read.gdsn(index.gdsn(snps_gds_file, "snp.id"))
+          
+          rownames(snps_mtrx)   <- if (exist.gdsn(snps_gds_file, "sample_id") == T) 
+              read.gdsn(index.gdsn(snps_gds_file, "sample_id")) else 
+                read.gdsn(index.gdsn(snps_gds_file, "sample.id"))
           
           closefn.gds(snps_gds_file)
           
