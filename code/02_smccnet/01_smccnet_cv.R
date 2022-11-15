@@ -22,12 +22,13 @@ snps_gds_fn <- as.character(args[6])
 
 pheno_trait <- c("Status")
 
+# chr <- 22
 # treatment <- "veh"
-# dnam_gds_fn <- paste0("input/dnam/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
+# dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
 # snps_gds_fn <- paste0("input/snps/ld_pruned/gds/chromosomes/dex_geno_chr", chr, ".gds")
 # cv_k    <- 5
 # cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
-# cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
+## cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
 
 # 2. Load DNAm beta mtrx
 
@@ -69,15 +70,15 @@ features  <- c(colnames(dnam_mtrx), colnames(snps_mtrx))
 cc_coef <- NULL # Unweighted version of SmCCNet.
 
 #### Feature sampling proportions. 
-s1      <- 0.5 
-s2      <- 0.9 
+s1      <- 0.9 
+s2      <- 0.4 
 
 #### Number of subsamples
 subsample_nr <- 50
 
 ### 5.2.2. Create sparsity penalty options.
-penalty_1 <- seq(.05, .3, by = .05)
-penalty_2 <- seq(.05, .3, by = .05) 
+penalty_1 <- seq(.01, .1, by = .01)
+penalty_2 <- seq(.01, .1, by = .01)
 penalty_grid <- expand.grid(penalty_1, penalty_2)
 
 #### Set a CV directory.
