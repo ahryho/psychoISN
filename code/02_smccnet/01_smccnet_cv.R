@@ -77,9 +77,9 @@ s2      <- 0.4
 subsample_nr <- 100
 
 print("Used set of parameters: ", quote = F)
-print("Sampling proportions: s1 = ", s1, "for DNAm")
-print("Sampling proportions: s2 = ", s2, "for SNPs")
-print("Sampling number = ", subsample_nr)
+print(paste0("Sampling proportions: s1 = ", s1, " for DNAm"), quote = F)
+print(paste0("Sampling proportions: s2 = ", s2, " for SNPs"), quote = F)
+print(paste0("Sampling number = ", subsample_nr), quote = F)
 
 ### 5.2.2. Create sparsity penalty options.
 penalty_1 <- seq(.01, .1, by = .01)
