@@ -74,7 +74,12 @@ s1      <- 0.9
 s2      <- 0.4 
 
 #### Number of subsamples
-subsample_nr <- 50
+subsample_nr <- 100
+
+print("Used set of parameters: ", quote = F)
+print("Sampling proportions: s1 = ", s1, "for DNAm")
+print("Sampling proportions: s2 = ", s2, "for SNPs")
+print("Sampling number = ", subsample_nr)
 
 ### 5.2.2. Create sparsity penalty options.
 penalty_1 <- seq(.01, .1, by = .01)
@@ -89,7 +94,7 @@ system(paste0("mkdir -p ", cv_dir))
 set.seed(1234)
 
 #### For each of the K-fold we compute the prediction err for each penalty pair
-res_cv_penaltiy_grid <- matrix(0, nrow = 2, ncol = cv_k * nrow(penalty_grid))
+res_cv_penaltiy_grid <- matrix(0, nrow = 3, ncol = cv_k * nrow(penalty_grid))
 
 fold_test_idx <- split(1:nr_samples, sample(1:nr_samples, cv_k))
 
@@ -159,25 +164,27 @@ for(i in 1:cv_k){
     rho_train <- round(rho_train, digits = 5)
     rho_test  <- round(rho_test, digits = 5)
     
-    return(list(RhoTest = rho_test, DeltaCor = delta_cor))
+    return(list(RhoTrain = rho_train, RhoTest = rho_test, DeltaCor = delta_cor))
   })
   stopCluster(cl)
   
-  res_cv_penaltiy_grid[,((i-1)*nrow(penalty_grid)+1):(i*nrow(penalty_grid))] = matrix(unlist(res), nrow = 2)
+  res_cv_penaltiy_grid[,((i-1)*nrow(penalty_grid)+1):(i*nrow(penalty_grid))] <- matrix(unlist(res), nrow = 3)
 }
 
 print("Cross-validation has been completed", quote = F)
 print(paste0("End date and time: ", Sys.time()), quote = F)
 toc()
 
-test_cc    <- matrix(res_cv_penaltiy_grid[1,], nrow = cv_k, byrow = TRUE)
-pred_error <- matrix(res_cv_penaltiy_grid[2,], nrow = cv_k, byrow = TRUE)
+train_cc   <- matrix(res_cv_penaltiy_grid[1,], nrow = cv_k, byrow = TRUE)
+test_cc    <- matrix(res_cv_penaltiy_grid[2,], nrow = cv_k, byrow = TRUE)
+pred_error <- matrix(res_cv_penaltiy_grid[3,], nrow = cv_k, byrow = TRUE)
 
 #### Combine prediction errors from all K folds and compute the total prediction error for each sparsity penalty pair
+avg_train_cc    <- colMeans(train_cc)
 avg_test_cc     <- colMeans(test_cc)
 avg_pred_error  <- colMeans(pred_error)
-total_pred_grid <- cbind(penalty_grid, avg_test_cc, avg_pred_error)
-colnames(total_pred_grid) <- c("l1", "l2", "test_cc", "pred_error")
+total_pred_grid <- cbind(penalty_grid, avg_train_cc, avg_test_cc, avg_pred_error)
+colnames(total_pred_grid) <- c("l1", "l2", "train_cc", "test_cc", "pred_error")
 
 print("Saving the total prediction error for each sparsity penalty pair...", quote = F)
 tic("Save prediction")
@@ -186,7 +193,7 @@ fwrite(total_pred_grid,
        paste0(cv_dir, "/cv_prediction_grid_", cv_k, "_fold.csv"),
        quote = F, row.names = F, sep = ";")
 
-print(paste("Prediction has been saved into ", cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"), quote = F)
+print(paste0("Prediction has been saved into ", cv_dir, "cv_prediction_grid_", cv_k, "_fold.csv"), quote = F)
 toc()
 
 #### Extract optimal penalties
