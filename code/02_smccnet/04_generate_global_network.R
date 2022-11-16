@@ -42,15 +42,17 @@ features    <- modules_obj$non_zero_features
 
 ## 3.1. Load CpGs' coordinates
 
-cpg_loc <- LoadMethylCoordinates(dnam_gds_fn)
+cpg_loc <- LoadMethylCoordinates(dnam_gds_fn) %>% data.frame() %>% setDT()
 
 ## 3.1. Load SNP' coordinates
 
-snp_loc <- LoadGenotypeCoordinates(snps_gds_fn)
+snp_loc <- LoadGenotypeCoordinates(snps_gds_fn) %>% data.frame() %>% setDT()
 
 # 4. Check how many cis / trans
 
-modules_features <- do.call(c, modules)
+modules_features <- features[do.call(c, modules)]
 
-length(do.call(c, modules))
+modules_features <- features[modules[[7]]]
 
+cpg_loc[CpG_ID %in% modules_features]
+snp_loc[SNP %in% modules_features]
