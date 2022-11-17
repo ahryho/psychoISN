@@ -19,10 +19,11 @@ module load R
 dir_prefix=/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns
 
 treatment=veh
-chrom=$(($SLURM_ARRAY_TASK_ID))
-cv_k=5
-cv_dir=${dir_prefix}/results/${cv_k}_fold_cv/
 chrom=all
+cv_k=5
+cv_dir=${dir_prefix}/results/${cv_k}_fold_cv/$chrom/$treatment
+
+mkdir -p $cv_dir
 
 dnam_gds_fn=${dir_prefix}/input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_${treatment}.gds
 snps_gds_fn=${dir_prefix}/input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds
