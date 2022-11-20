@@ -14,7 +14,7 @@ LoadPackages(pkgs_list)
 
 args        <- commandArgs(T)
 treatment   <- as.character(args[1]) 
-chr         <- as.numeric(args[2])  # "all_dim_reduction_mad_80"
+chr         <- as.character(args[2])  # "all_dim_reduction_mad_80"
 cv_k        <- as.numeric(args[3])
 cv_dir      <- as.character(args[4])
 dnam_gds_fn <- as.character(args[5])
