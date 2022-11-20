@@ -86,15 +86,17 @@ toc()
 
 # 7. Compute the similarity matrix based on the canonical correlation weight vectors
 
-print("Start computation of the similarity matrix ...", quote = F)
+print("Start computation of the global similarity matrix ...", quote = F)
 print(paste0("Start date and time: ", Sys.time()), quote = F)
-tic("Similarity matrix computation")
+tic("Global similarity matrix computation")
 
 global_sim_mtrx <- getAbar(Ws, FeatureLabel = modules_features)
 
-print("The similarity matrix has been calculated", quote = F)
+print("The global similarity matrix has been calculated", quote = F)
 print(paste0("End date and time: ", Sys.time()), quote = F)
 toc()
+
+system(paste0("mkdir -p ", cv_dir, "/networks"))
 
 saveRDS(global_sim_mtrx, 
         file = paste0(cv_dir, "/networks/smccnet_global_chr_", chr, ".rds"))
