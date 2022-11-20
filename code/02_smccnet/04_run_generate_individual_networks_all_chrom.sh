@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --job-name=get_individual_net_all_chr
-#SBATCH --output=logs/get_individual_net_all_chr_%A.out
-#SBATCH --error=logs/get_individual_net_all_chr_%A.err
+#SBATCH --job-name=get_dex_individual_net_all_chr
+#SBATCH --output=logs/get_dex_individual_net_all_chr_%A.out
+#SBATCH --error=logs/get_dex_individual_net_all_chr_%A.err
 #SBATCH --mem=800Gb
 #SBATCH --part=pe
 #SBATCH --mail-type=FAIL,END
@@ -18,7 +18,7 @@ module load R
 
 dir_prefix=/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns
 
-treatment=veh
+treatment=dex
 chrom=all
 cv_k=5
 cv_dir=${dir_prefix}/results/${cv_k}_fold_cv/$chrom/$treatment

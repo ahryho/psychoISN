@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name=smccnet_all_chr
-#SBATCH --output=logs/smccnet_all_chr_%A.out
-#SBATCH --error=logs/smccnet_all_chr_%A.err
+#SBATCH --output=logs/smccnet_dex_all_chr_%A.out
+#SBATCH --error=logs/smccnet_dex_all_chr_%A.err
 #SBATCH --mem=800Gb
 #SBATCH --part=pe
 #SBATCH --mail-type=FAIL,END
