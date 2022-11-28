@@ -3,7 +3,7 @@
 #SBATCH --job-name=get_dex_individual_net_all_chr
 #SBATCH --output=logs/get_dex_individual_net_all_chr_%A.out
 #SBATCH --error=logs/get_dex_individual_net_all_chr_%A.err
-#SBATCH --mem=800Gb
+#SBATCH --mem=500Gb
 #SBATCH --part=pe
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=anastasiia_hry@psych.mpg.de

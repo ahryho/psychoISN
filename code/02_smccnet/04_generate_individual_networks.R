@@ -38,6 +38,8 @@ pheno_trait_vec <- pheno_treatmnet[, ..pheno_trait]
 dnam_mtrx       <- dnam_mtrx[pheno_treatmnet$DNA_ID, ]
 snps_mtrx       <- snps_mtrx[pheno_treatmnet$DNA_ID, ]
 
+nr_samples      <- nrow(snps_mtrx)
+
 # 2. Load SmCCNet results 
 
 modules_obj <- readRDS(file = paste0(cv_dir, "/smccnet_omic_modules_chr_", chr, ".rds"))
@@ -108,7 +110,7 @@ cl <- makeCluster(no.cores, type = "FORK")
 registerDoParallel(cl)
 
 clusterEvalQ(cl, library(SmCCNet))
-clusterExport(cl, c("global_dnam_mtrx", "global_snps_mtrx", "pheno_trait_vec",  
+clusterExport(cl, c("global_dnam_mtrx", "global_snps_mtrx", "pheno_trait_vec", "nr_samples", 
                     "l1", "l2", "s1", "s2", "subsample_nr", "modules_features"))
 
 networks <- parSapply(cl, 1:nrow(pheno_trait_vec), function(sample_idx){
@@ -130,7 +132,7 @@ networks <- parSapply(cl, 1:nrow(pheno_trait_vec), function(sample_idx){
   minus_sample_sim_mtrx <- getAbar(Ws, FeatureLabel = modules_features)
   
   print("Creating an individual network ", quote = F)
-  sample_sim_mtrx <- global_sim_mtrx - minus_sample_sim_mtrx
+  sample_sim_mtrx <- nr_samples * (global_sim_mtrx - minus_sample_sim_mtrx) +  minus_sample_sim_mtrx
   
   print("Saving an individual network ", quote = F)
   saveRDS(list(DNA_ID = sample_dna_id, network = sample_sim_mtrx), 
