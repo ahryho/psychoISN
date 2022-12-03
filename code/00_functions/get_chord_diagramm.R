@@ -19,12 +19,13 @@ library(chorddiag) #devtools::install_github("mattflor/chorddiag")
 CustomChordDiagram <- function(net, cpg_loc, snp_loc, thrsh = 0.8){
   
   # Get CpGs' and SNPs' locations for only features present in the network "net"
-  net_cpg_loc <- cpg_loc[CpG_ID %in% colnames(net)] %>% mutate(ID = CpG_ID) %>% select(-CpG_ID)
-  net_snp_loc <- snp_loc[SNP %in% colnames(net)] %>% mutate(ID = SNP) %>% select(-SNP)
+  net_cpg_loc <- cpg_loc[CpG_ID %in% colnames(net)] %>% mutate(ID = CpG_ID) %>% dplyr::select(-CpG_ID)
+  net_snp_loc <- snp_loc[SNP %in% colnames(net)] %>% mutate(ID = SNP) %>% dplyr::select(-SNP)
   net_loc     <- rbind(net_cpg_loc, net_snp_loc)[match(rownames(net), ID)]
   
   # Take only QTLs
-  qtl_net     <- net[rownames(net) %in% net_snp_loc$ID, colnames(net) %in% net_cpg_loc$ID,] 
+  qtl_net     <- net[rownames(net) %in% net_snp_loc$ID, colnames(net) %in% net_cpg_loc$ID] %>% 
+    as.matrix() %>% as.data.frame()
   
   # Transform net to long format 
   data_long <- qtl_net %>% 
@@ -38,7 +39,7 @@ CustomChordDiagram <- function(net, cpg_loc, snp_loc, thrsh = 0.8){
   
   # Subset "net" on the given threshold and 
   # count the number of associations
-  data_plt <- data_long[data_long$value >= thrsh, c("cpg_chr", "snp_chr", "value")] %>% setDT() %>% count(snp_chr, cpg_chr)
+  data_plt <- data_long[abs(data_long$value) >= thrsh, c("cpg_chr", "snp_chr", "value")] %>% setDT() %>% count(snp_chr, cpg_chr)
   data_plt <- data_plt[, lapply(.SD, as.numeric)]
   data_plt <- data_plt[order(data_plt$cpg_chr),]
   

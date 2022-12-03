@@ -1,0 +1,237 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r include = F}
+library(dplyr)
+library(data.table)
+library(gdsfmt)
+
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
+
+cbPalette <- c("grey", "#0072B2")
+```
+
+```{r include = F}
+rslt_dir <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results/5_fold_cv/all/"
+setwd(rslt_dir)
+```
+
+```{r load-data, include = F}
+treatment <- "dex"
+dex_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks_pearson_cor/pearson_global_chr_all.rds"))
+
+treatment <- "veh"
+veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks_pearson_cor/pearson_global_chr_all.rds"))
+```
+
+# Overlap between dex and veh features
+
+```{r}
+dex_features <- rownames(dex_global_net) # 5'388
+veh_features <- rownames(veh_global_net) # 4'519
+
+olap <- intersect(dex_features, veh_features) # 758
+olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 566
+olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 192
+```
+
+# Filter significant associations
+
+```{r include = F}
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+    )
+}
+```
+
+```{r}
+dex_global_net_flatten <- flattenCorrMatrix(dex_global_net$network, dex_global_net$pvalues) %>% 
+  mutate(fdr = p.adjust(p, method = "BH")) %>% setDT()
+veh_global_net_flatten <- flattenCorrMatrix(veh_global_net$network, veh_global_net$pvalues) %>% 
+  mutate(fdr = p.adjust(p, method = "BH")) %>% setDT()
+```
+
+```{r}
+dex_global_net_flatten_sign <- dex_global_net_flatten[fdr <= 0.05]
+veh_global_net_flatten_sign <- veh_global_net_flatten[fdr <= 0.05]
+```
+
+
+```{r load-cpg-coordintaes, include = F}
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
+
+treatment   <- "veh"
+dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
+cpg_loc     <- LoadMethylCoordinates(dnam_gds_fn) %>% data.frame() %>% setDT()
+```
+
+```{r load-snp-coordintaes, include = F}
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
+
+snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
+snp_loc     <- LoadGenotypeCoordinates(snps_gds_fn) %>% data.frame() %>% setDT()
+```
+
+```{r create-tbl-for-plt, include = F}
+dex_net_cpg_loc <- cpg_loc[CpG_ID %in% dex_global_net_flatten_sign$row] %>% 
+  mutate(ID = CpG_ID, Type = "CpG", treatment = "GR-stimulated") %>% dplyr::select(-c(CpG_ID))
+dex_net_snp_loc <- snp_loc[SNP %in% dex_global_net_flatten_sign$column] %>% 
+  mutate(ID = SNP, Type = "SNP", treatment = "GR-stimulated") %>% dplyr::select(-SNP)
+
+veh_net_cpg_loc <- cpg_loc[CpG_ID %in% veh_global_net_flatten_sign$row] %>% 
+  mutate(ID = CpG_ID, Type = "CpG", treatment = "Baseline") %>% dplyr::select(-c(CpG_ID))
+veh_net_snp_loc <- snp_loc[SNP %in% veh_global_net_flatten_sign$column] %>% 
+  mutate(ID = SNP, Type = "SNP", treatment = "Baseline") %>% dplyr::select(-SNP)
+
+net_loc     <- rbind(dex_net_cpg_loc, dex_net_snp_loc, veh_net_cpg_loc, veh_net_snp_loc)
+```
+
+# Distribution of features, CpGs and SNPs across chromosmes and time points (not overlap)
+
+```{r}
+net_loc_count <- net_loc %>%
+  group_by(chr, Type, treatment) %>%
+  tally() %>%
+  group_by(treatment) %>%
+  mutate(freq = n / sum(n)) %>% 
+  mutate(chr = factor(chr, levels = 1:22)) %>% setDT()
+```
+
+```{r}
+ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(data = net_loc_count[freq > 0.01], 
+            aes(label = scales::percent(freq, accuracy = 1), y = freq), 
+            stat = "identity", position = position_stack(vjust = 0.5), size = 3,
+            color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(.~chr, nrow = 1, strip.position = "top") +
+  labs(title = "",
+       x = "",
+       y = "CpG frequency") +
+  theme(legend.title = element_blank(), 
+        legend.position = "bottom",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = 8),
+        axis.title = element_text(size = 8, colour = "black"),
+        axis.text.x = element_text(angle = 90, hjust = 0.5, colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_fill_brewer(palette = "Set2")
+  # scale_color_manual(values = alpha(cbPalette, 0.75)) +
+  # scale_fill_manual(values = alpha(cbPalette, 0.75))
+```
+
+# Nr of CpGs per SNP 
+```{r veh-snp-cpg_cnt, include = F}
+# Take only QTLs
+thrsh <- 0
+
+veh_qtl_net <- veh_global_net_flatten_sign[row %like% "cg"][column %like% "rs"] %>%
+  dplyr::select(SNP = row, CpG_ID = column, value = cor, fdr)
+
+veh_qtl_cnt <- veh_qtl_net[abs(value) >= thrsh, ] %>% 
+  group_by(SNP) %>%
+  tally() %>% 
+  mutate(treatment = "Baseline")
+```
+
+```{r dex-snp-cpg_cnt, include = F}
+# Take only QTLs
+dex_qtl_net <- dex_global_net_flatten_sign[row %like% "cg"][column %like% "rs"] %>%
+  dplyr::select(SNP = row, CpG_ID = column, value = cor, fdr)
+
+dex_qtl_cnt <- dex_qtl_net[abs(value) >= thrsh, ] %>% 
+  group_by(SNP) %>%
+  tally() %>% 
+  mutate(treatment = "GR-stimulated")
+```
+
+```{r}
+qtl_cnt <- rbind(veh_qtl_cnt, dex_qtl_cnt)
+
+plt.size <- 12
+ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) +
+  geom_boxplot(position = position_dodge(width = 0.8)) +
+  theme(legend.position = "bottom", # c(0.9, 0.9), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(), 
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size), 
+        axis.title = element_text(size = plt.size),
+        axis.text = element_text(size = plt.size, colour = "black")) + 
+  labs(title = "",
+       x = "", y = "Nr. of CpGs per SNP") +
+  scale_color_manual(values = cbPalette) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
+# Chord plot of meQTLs
+
+## Basline
+
+```{r}
+CustomChordDiagram(veh_global_net$network, cpg_loc, snp_loc, thrsh = 0.40)
+```
+
+
+## GR-stimulated
+
+```{r}
+CustomChordDiagram(dex_global_net$network, cpg_loc, snp_loc, thrsh = 0.40)
+```
+
+####------------
+# 4. Check how many cis / trans
+
+# modules_features <- features[do.call(c, modules)]
+# 
+# cpg_loc[CpG_ID %in% modules_features]
+# snp_loc[SNP %in% modules_features]
+
+####------------
+
+# 5. Coord plot 
+
+## 5.1. Baseline
+
+net <- veh_global_net %>% as.matrix() %>% as.data.frame()
+net <- veh_global_net[!rownames(veh_global_net) %in% olap,
+                      !colnames(veh_global_net) %in% olap] %>% as.matrix() %>% as.data.frame()
+CustomChordDiagram(net, cpg_loc, snp_loc, thrsh = 0.80)
+
+## 5.2. Post-dexamethasone
+
+net <- dex_global_net %>% as.matrix() %>% as.data.frame()
+CustomChordDiagram(net, cpg_loc, snp_loc, thrsh = 0.25)
+
+## 5.3. Net with olap features betweeb pre- and post-dex
+
+### 5.3.1 Baseline
+
+net <- veh_global_net[olap, olap] %>% as.matrix() %>% as.data.frame()
+CustomChordDiagram(net, cpg_loc, snp_loc, thrsh = 0)
+
+
+
+
+
+# Get CpGs' and SNPs' locations for only features present in the network "net"
+net_cpg_loc <- cpg_loc[CpG_ID %in% colnames(net)] %>% mutate(ID = CpG_ID) %>% select(-CpG_ID)
+net_snp_loc <- snp_loc[SNP %in% colnames(net)] %>% mutate(ID = SNP) %>% select(-SNP)
+net_loc     <- rbind(net_cpg_loc, net_snp_loc)[match(rownames(net), ID)]
