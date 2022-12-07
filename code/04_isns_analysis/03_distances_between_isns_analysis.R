@@ -14,7 +14,7 @@ dir_pre <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 
 dnam_pca_dir <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/output/data/methylation/02_dmp/")
 rslt_dir     <- paste0(dir_pre, "results/5_fold_cv/all/")
-treatment    <- "dex"
+treatment    <- "veh"
 
 ##
 
@@ -23,8 +23,8 @@ dist_mtrx       <- as.dist(dist_df)
 hclust_avg      <- hclust(dist_mtrx)
 
 plot(hclust_avg)
-nr_cluster      <- 4
-rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
+nr_cluster      <- 5
+# rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 
 cut_avg         <- cutree(hclust_avg, k = nr_cluster)
 

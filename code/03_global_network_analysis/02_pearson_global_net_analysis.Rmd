@@ -145,6 +145,7 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
 ```
 
 # Nr of CpGs per SNP 
+
 ```{r veh-snp-cpg_cnt, include = F}
 # Take only QTLs
 thrsh <- 0
@@ -202,11 +203,90 @@ snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n), ][1:10,]
 CustomChordDiagram(veh_global_net$network, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
 ```
 
+```{r}
+treatment <- "Baseline"
+
+# snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n, decreasing = T), ][10, ]
+# cdm <- veh_global_net_flatten_sign[column %in% snp_max, ]
+cdm <- veh_global_net_flatten_sign[order(veh_global_net_flatten_sign$fdr),]
+cdm <- cdm[((row %like% "cg") & (column %ilike% "rs"))]
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("row" = "ID")) %>% 
+  mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("column" = "ID")) %>% 
+  mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
+head(cdm) 
+
+cdm$cpg_pos <- as.numeric(cdm$cpg_pos)
+cdm$snp_pos <- as.numeric(cdm$snp_pos)
+
+bed1 = cdm[1:500, .(cpg_chr, cpg_pos, fdr, cor, row)] %>% select(chr = cpg_chr, start = cpg_pos, end = cpg_pos, cor, fdr, cpg = row)
+bed2 = cdm[1:500, .(snp_chr, snp_pos, fdr, cor, column)] %>% select(chr = snp_chr, start = snp_pos, end = snp_pos, cor, fdr, snp = column)
+
+color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=140) {
+  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
+}
+
+bed1$col <-color.gradient(-log10(bed1$fdr + 1e-6))
+bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+
+
+cytoband <- read.cytoband(species = "hg19")$df
+cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+circos.clear()
+# circos.initialize()
+# circos.par("gap.degree" = rep(c(1, 20), 1))
+# circos.initializeWithIdeogram(cytoband, plotType = NULL)
+# circos.genomicIdeogram(cytoband)
+# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
+circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
+# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
+circos.genomicDensity(bed1, col = "#FF000080")
+circos.genomicDensity(bed2, col = "#0000FF80")
+circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
+```
+
 
 ## GR-stimulated
 
 ```{r}
-CustomChordDiagram(dex_global_net$network, cpg_loc, snp_loc, thrsh = 0.0)
+treatment <- "GR-stimulated"
+
+# snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n, decreasing = T), ][10, ]
+# cdm <- veh_global_net_flatten_sign[column %in% snp_max, ]
+cdm <- dex_global_net_flatten_sign[order(dex_global_net_flatten_sign$fdr),]
+cdm <- cdm[((row %like% "cg") & (column %ilike% "rs"))]
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("row" = "ID")) %>% 
+  mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("column" = "ID")) %>% 
+  mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
+head(cdm) 
+
+cdm$cpg_pos <- as.numeric(cdm$cpg_pos)
+cdm$snp_pos <- as.numeric(cdm$snp_pos)
+
+bed1 = cdm[1:500, .(cpg_chr, cpg_pos, fdr, cor, row)] %>% select(chr = cpg_chr, start = cpg_pos, end = cpg_pos, cor, fdr, cpg = row)
+bed2 = cdm[1:500, .(snp_chr, snp_pos, fdr, cor, column)] %>% select(chr = snp_chr, start = snp_pos, end = snp_pos, cor, fdr, snp = column)
+
+color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=140) {
+  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
+}
+
+bed1$col <-color.gradient(-log10(bed1$fdr + 1e-6))
+bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+
+cytoband <- read.cytoband(species = "hg19")$df
+cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+circos.clear()
+# circos.initialize()
+# circos.par("gap.degree" = rep(c(1, 20), 1))
+# circos.initializeWithIdeogram(cytoband, plotType = NULL)
+# circos.genomicIdeogram(cytoband)
+# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
+circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
+# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
+circos.genomicDensity(bed1, col = "#FF000080")
+circos.genomicDensity(bed2, col = "#0000FF80")
+circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
 ```
 
 ####------------

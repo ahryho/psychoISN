@@ -39,7 +39,7 @@ setwd(rslt_dir)
 # 2. Load ISNs
 
 isns_fn_lst <- list.files(paste0(treatment, "/networks_pearson_cor"), pattern = "individual", full.names = T)
-isns_lst    <- lapply(isns_fn_lst[1:2], readRDS)
+isns_lst    <- lapply(isns_fn_lst, readRDS)
 
 isns_membership_df <- lapply(isns_lst, function(net_obj) data.frame(netID = net_obj[[1]], treatment = treatment)) %>% 
   bind_rows()
