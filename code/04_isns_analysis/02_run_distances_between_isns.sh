@@ -14,11 +14,13 @@
 #     exit 1
 # fi
 
+ulimit -s unlimited
+
 module load R
 
 dir_prefix=/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns
 
-treatment=dex
+treatment=veh
 chrom=all
 cv_k=5
 rslt_dir=${dir_prefix}/results/${cv_k}_fold_cv/$chrom/
