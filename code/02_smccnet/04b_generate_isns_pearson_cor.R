@@ -99,7 +99,7 @@ networks <- parSapply(cl, 1:nrow(pheno_trait_vec), function(sample_idx){
   minus_samplepheno_trait_vec <- pheno_trait_vec[-sample_idx,]
   
   print("Computation of the pearson correlation ...", quote = F)
-  pearson                    <- rcorr(global_mtrx, type = "pearson")
+  pearson                    <- rcorr(minus_sample_mtrx, type = "pearson")
   minus_sample_sim_mtrx      <- pearson$r
   minus_sample_sim_mtrx_pval <- pearson$P
   
