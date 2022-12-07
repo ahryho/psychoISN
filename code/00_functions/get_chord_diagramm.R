@@ -39,7 +39,8 @@ CustomChordDiagram <- function(net, cpg_loc, snp_loc, thrsh = 0.8){
   
   # Subset "net" on the given threshold and 
   # count the number of associations
-  data_plt <- data_long[abs(data_long$value) >= thrsh, c("cpg_chr", "snp_chr", "value")] %>% setDT() %>% count(snp_chr, cpg_chr)
+  data_plt <- data_long[abs(data_long$value) >= thrsh, c("cpg_chr", "snp_chr", "value")] %>% 
+    setDT() %>% count(snp_chr, cpg_chr)
   data_plt <- data_plt[, lapply(.SD, as.numeric)]
   data_plt <- data_plt[order(data_plt$cpg_chr),]
   

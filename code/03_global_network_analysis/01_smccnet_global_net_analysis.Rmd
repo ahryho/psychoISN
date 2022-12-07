@@ -30,7 +30,14 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_
 # Test for significance
 
 ```{r}
+treatment <- "dex"
+dex_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds"))# smccnet_global_chr_all.rds"))
 
+treatment <- "veh"
+veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds")) # smccnet_global_chr_all.rds"))
+
+dex_global_net <- dex_global_net$network
+veh_global_net <- veh_global_net$network
 ```
 
 
@@ -201,14 +208,16 @@ ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) 
 ## Basline
 
 ```{r}
-CustomChordDiagram(veh_global_net, cpg_loc, snp_loc, thrsh = 0.80)
+snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n), ][10:15,]
+CustomChordDiagram(veh_global_net, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
 ```
 
 
 ## GR-stimulated
 
 ```{r}
-CustomChordDiagram(dex_global_net, cpg_loc, snp_loc, thrsh = 0.80)
+snp_max <- dex_qtl_cnt[order(dex_qtl_cnt$n), ][1:10,]
+CustomChordDiagram(dex_global_net, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
 ```
 
 ####------------

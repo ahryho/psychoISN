@@ -94,7 +94,7 @@ networks <- parSapply(cl, 1:nrow(pheno_trait_vec), function(sample_idx){
   
   print(paste0("Obtaining an individual network for ", sample_dna_id, " ..."), quote = F)
   
-  minus_sample_mtrx      <- global_mtrx[-sample_idx, ]
+  minus_sample_mtrx           <- global_mtrx[-sample_idx, ]
   minus_sample_snps_mtrx      <- global_snps_mtrx[-sample_idx, ]
   minus_samplepheno_trait_vec <- pheno_trait_vec[-sample_idx,]
   

@@ -28,7 +28,5 @@ snps_gds_fn=${dir_prefix}/input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_prune
 
 echo Processing all chromosomes at once, i.e. no splitting
 
-# Run SmCCNet CV
-
-Rscript --vanilla "/home/ahryhorzhevska/kul/dex-stim-human-array-isns/code/02_smccnet/04a_generate_isns.R" \
+Rscript --vanilla "/home/ahryhorzhevska/kul/dex-stim-human-array-isns/code/02_smccnet/04b_generate_isns_pearson_cor.R" \
 $treatment $chrom $cv_dir $dnam_gds_fn $snps_gds_fn

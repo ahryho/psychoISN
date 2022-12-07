@@ -7,6 +7,8 @@ editor_options:
 library(dplyr)
 library(data.table)
 library(gdsfmt)
+library(ggplot2)
+library(mnda)
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
@@ -30,8 +32,8 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks_pearson_cor/pea
 # Overlap between dex and veh features
 
 ```{r}
-dex_features <- rownames(dex_global_net) # 5'388
-veh_features <- rownames(veh_global_net) # 4'519
+dex_features <- rownames(dex_global_net$network) # 5'388
+veh_features <- rownames(veh_global_net$network) # 4'519
 
 olap <- intersect(dex_features, veh_features) # 758
 olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 566
@@ -48,12 +50,18 @@ olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 192
 # pmat : matrix of the correlation p-values
 flattenCorrMatrix <- function(cormat, pmat) {
   ut <- upper.tri(cormat)
-  data.frame(
+  if (is.null(pmat)){
+    data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut])
+  } else{
+    data.frame(
     row = rownames(cormat)[row(cormat)[ut]],
     column = rownames(cormat)[col(cormat)[ut]],
     cor  =(cormat)[ut],
-    p = pmat[ut]
-    )
+    p = pmat[ut]) 
+  }
 }
 ```
 
@@ -86,14 +94,14 @@ snp_loc     <- LoadGenotypeCoordinates(snps_gds_fn) %>% data.frame() %>% setDT()
 ```
 
 ```{r create-tbl-for-plt, include = F}
-dex_net_cpg_loc <- cpg_loc[CpG_ID %in% dex_global_net_flatten_sign$row] %>% 
+dex_net_cpg_loc <- cpg_loc[CpG_ID %in% union(dex_global_net_flatten_sign$row, dex_global_net_flatten_sign$column)] %>% 
   mutate(ID = CpG_ID, Type = "CpG", treatment = "GR-stimulated") %>% dplyr::select(-c(CpG_ID))
-dex_net_snp_loc <- snp_loc[SNP %in% dex_global_net_flatten_sign$column] %>% 
+dex_net_snp_loc <- snp_loc[SNP %in% union(dex_global_net_flatten_sign$row, dex_global_net_flatten_sign$column)] %>% 
   mutate(ID = SNP, Type = "SNP", treatment = "GR-stimulated") %>% dplyr::select(-SNP)
 
-veh_net_cpg_loc <- cpg_loc[CpG_ID %in% veh_global_net_flatten_sign$row] %>% 
+veh_net_cpg_loc <- cpg_loc[CpG_ID %in% union(veh_global_net_flatten_sign$row, veh_global_net_flatten_sign$column)] %>% 
   mutate(ID = CpG_ID, Type = "CpG", treatment = "Baseline") %>% dplyr::select(-c(CpG_ID))
-veh_net_snp_loc <- snp_loc[SNP %in% veh_global_net_flatten_sign$column] %>% 
+veh_net_snp_loc <- snp_loc[SNP %in% union(veh_global_net_flatten_sign$row, veh_global_net_flatten_sign$column)] %>% 
   mutate(ID = SNP, Type = "SNP", treatment = "Baseline") %>% dplyr::select(-SNP)
 
 net_loc     <- rbind(dex_net_cpg_loc, dex_net_snp_loc, veh_net_cpg_loc, veh_net_snp_loc)
@@ -121,7 +129,7 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
   facet_wrap(.~chr, nrow = 1, strip.position = "top") +
   labs(title = "",
        x = "",
-       y = "CpG frequency") +
+       y = "Variant frequency") +
   theme(legend.title = element_blank(), 
         legend.position = "bottom",
         panel.grid.major = element_blank(),
@@ -141,8 +149,10 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
 # Take only QTLs
 thrsh <- 0
 
-veh_qtl_net <- veh_global_net_flatten_sign[row %like% "cg"][column %like% "rs"] %>%
-  dplyr::select(SNP = row, CpG_ID = column, value = cor, fdr)
+veh_qtl_net <- rbind(veh_global_net_flatten_sign[row %like% "cg"][column %like% "rs"],
+                     veh_global_net_flatten_sign[row %like% "rs"][column %like% "cg"]) %>%
+  unique() %>%
+  dplyr::select(CpG_ID = row, SNP = column, value = cor, fdr)
 
 veh_qtl_cnt <- veh_qtl_net[abs(value) >= thrsh, ] %>% 
   group_by(SNP) %>%
@@ -152,8 +162,10 @@ veh_qtl_cnt <- veh_qtl_net[abs(value) >= thrsh, ] %>%
 
 ```{r dex-snp-cpg_cnt, include = F}
 # Take only QTLs
-dex_qtl_net <- dex_global_net_flatten_sign[row %like% "cg"][column %like% "rs"] %>%
-  dplyr::select(SNP = row, CpG_ID = column, value = cor, fdr)
+dex_qtl_net <- rbind(dex_global_net_flatten_sign[row %like% "cg"][column %like% "rs"],
+                     dex_global_net_flatten_sign[row %like% "rs"][column %like% "cg"] ) %>%
+  unique() %>%
+  dplyr::select(CpG_ID = row, SNP = column, value = cor, fdr)
 
 dex_qtl_cnt <- dex_qtl_net[abs(value) >= thrsh, ] %>% 
   group_by(SNP) %>%
@@ -186,14 +198,15 @@ ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) 
 ## Basline
 
 ```{r}
-CustomChordDiagram(veh_global_net$network, cpg_loc, snp_loc, thrsh = 0.40)
+snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n), ][1:10,]
+CustomChordDiagram(veh_global_net$network, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
 ```
 
 
 ## GR-stimulated
 
 ```{r}
-CustomChordDiagram(dex_global_net$network, cpg_loc, snp_loc, thrsh = 0.40)
+CustomChordDiagram(dex_global_net$network, cpg_loc, snp_loc, thrsh = 0.0)
 ```
 
 ####------------
