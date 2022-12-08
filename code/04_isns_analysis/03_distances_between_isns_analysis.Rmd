@@ -1,0 +1,191 @@
+---
+title: "ISN"
+subtitle: "Dexamethasone-Stimulated Human Array Project"
+author: 
+  - name: Anastasiia Hryhorzhevska
+    email: anastasiia_hry@psych.mpg.de
+    url: https://github.com/ahryho
+    affiliation: Max Planck Institute of Psychiatry
+    affiliation_url: https://www.psych.mpg.de/2664393/medizinische-genomforschung
+date: "Last compiled on `r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: TRUE
+    toc_float: TRUE
+    df_print: paged
+    css: ../style.css
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include=FALSE}
+options(digits = 4, width = 100, stringsAsFactors = T)
+knitr::opts_chunk$set(echo = TRUE,
+                      tidy.opts = list(width.cutoff = 100),
+                      tidy=TRUE,
+                      fig.pos = "H",
+                      dpi = 200,
+                      warning = FALSE, 
+                      message = FALSE, 
+                      cache = TRUE, 
+                      cache.lazy = FALSE)
+# define DT as the standard printing method for data.frame
+library(knitr)
+library(DT)
+knit_print.data.frame <- function(x, ...) {
+  knit_print(DT::datatable(x,
+                           filter="top",
+                           rownames = FALSE,
+                           extensions = "FixedColumns",
+                           options = list(
+                             scrollX = TRUE,
+                             pageLength = 5
+                             
+                           )), ...)
+}
+```
+
+```{r, include=FALSE}
+library(dplyr)
+library(data.table)
+library(rdist)
+library(gdsfmt)
+
+library(ggplot2)
+library(dendextend)
+library(factoextra)
+```
+
+```{r}
+# source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+# dir_pre <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
+# dnam_pca_dir <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/output/data/methylation/02_dmp/")
+
+source("~/bio/code/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+
+dir_pre  <- "~/bio/code/kul/dex-stim-human-array-isns/"
+rslt_dir <- paste0(dir_pre, "results/data/5_fold_cv/all/")
+```
+
+# Baseline
+
+```{r include = F, eval = T}
+treatment   <- "veh"
+pheno       <- fread(paste0(dir_pre, "input/pheno/pheno_full_for_kimono.csv"), dec = ",")[Include == T][Dex == ifelse(treatment == "veh", 0, 1)]
+
+dist_veh_df <- fread(paste0(rslt_dir, treatment, "/smccnet_isns_euclidean_dist_mtrx.csv"))
+dist_mtrx   <- as.dist(dist_veh_df)
+hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
+```
+
+```{r}
+nr_cluster  <- 5
+# rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
+cut_avg     <- cutree(hclust_avg, k = nr_cluster)
+
+avg_dend_obj <- as.dendrogram(hclust_avg)
+avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
+plot(avg_col_dend)
+```
+
+```{r}
+dist_veh_df  <- mutate(dist_veh_df, DNA_ID = colnames(dist_veh_df), cluster = as.factor(cut_avg))
+count(dist_veh_df, cluster)
+
+dist_veh_df <- dist_veh_df[match(pheno$DNA_ID, dist_veh_df$DNA_ID), ] 
+dist_veh_df <- left_join(dist_veh_df, pheno[, c("DNA_ID", "Status")]) %>% 
+  mutate(Status = ifelse(Status == 0, "Control", "Case"))
+
+fviz_cluster(list(data = dist_veh_df[, 1:196], 
+                  cluster = dist_veh_df$cluster),
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  # scale_shape_manual(values = pheno$Status) +
+  geom_point(aes(shape = dist_veh_df$Status), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+
+```
+
+```{r include = F, eval = T}
+plt_df <- left_join(dist_veh_df, pheno[, .(DNA_ID, Age, mAge_Hovath, BMI_D1, Sex)])
+```
+
+```{r}
+plt.size <- 10
+ggplot(plt_df, aes(x = cluster, y = BMI_D1)) +
+  geom_violin(aes(color = cluster, fill = cluster)) +
+  geom_boxplot(width = 0.05, fill = "white", color = "black") +
+  theme(legend.position = "none", # c(0.9, 0.9), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(), 
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size), 
+        axis.title = element_text(size = plt.size),
+        axis.text = element_text(size = plt.size, colour = "black")) + 
+  labs(title = "",
+       y = "BMI") +
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Set2")
+```
+
+
+```{r}
+plt.size <- 10
+ggplot(plt_df, aes(x = cluster, y = Age)) +
+  geom_violin(aes(color = cluster, fill = cluster)) +
+  geom_boxplot(width = 0.05, fill = "white", color = "black") +
+  theme(legend.position = "none", # c(0.9, 0.9), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(), 
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size), 
+        axis.title = element_text(size = plt.size),
+        axis.text = element_text(size = plt.size, colour = "black")) + 
+  labs(title = "",
+       y = "Age") +
+  scale_color_brewer(palette = "Dark2") +
+  scale_fill_brewer(palette = "Set2")
+```
+
+# GR-induced
+
+```{r include = F, eval = T}
+treatment   <- "dex"
+pheno       <- fread(paste0(dir_pre, "input/pheno/pheno_full_for_kimono.csv"), dec = ",")[Include == T][Dex == ifelse(treatment == "veh", 0, 1)]
+
+dist_dex_df <- fread(paste0(rslt_dir, treatment, "/smccnet_isns_euclidean_dist_mtrx.csv"))
+dist_mtrx   <- as.dist(dist_dex_df)
+hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
+```
+
+```{r}
+nr_cluster  <- 5
+# rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
+cut_avg     <- cutree(hclust_avg, k = nr_cluster)
+
+avg_dend_obj <- as.dendrogram(hclust_avg)
+avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
+plot(avg_col_dend)
+```
+
+```{r}
+dist_dex_df  <- mutate(dist_dex_df, DNA_ID = colnames(dist_dex_df), cluster = as.factor(cut_avg))
+count(dist_dex_df, cluster)
+
+dist_dex_df <- dist_dex_df[match(pheno$DNA_ID, dist_dex_df$DNA_ID), ] 
+dist_dex_df <- left_join(dist_dex_df, pheno[, c("DNA_ID", "Status")]) %>% 
+  mutate(Status = ifelse(Status == 0, "Control", "Case"))
+
+fviz_cluster(list(data = dist_dex_df[, 1:196], 
+                  cluster = dist_dex_df$cluster),
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  # scale_shape_manual(values = pheno$Status) +
+  geom_point(aes(shape = dist_dex_df$Status), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+
+```
+
