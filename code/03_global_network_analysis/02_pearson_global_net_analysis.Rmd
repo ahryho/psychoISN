@@ -234,11 +234,13 @@ color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=14
 }
 
 bed1$col <-color.gradient(-log10(bed1$fdr + 1e-6))
-bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+lgd_links <- Legend(at = round(seq(min(-log10(bed1$fdr + 1e-6)), max(-log10(bed1$fdr + 1e-6)), by = 0.5)), 
+                            col_fun = color.gradient, 
+    title_position = "topleft", title = "-log10(FDR)")
 
-
-cytoband <- read.cytoband(species = "hg19")$df
-cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+# cytoband <- read.cytoband(species = "hg19")$df
+# cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
 circos.clear()
 # circos.initialize()
 # circos.par("gap.degree" = rep(c(1, 20), 1))
@@ -250,8 +252,8 @@ circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
 circos.genomicDensity(bed1, col = brewer_pallete[1])
 circos.genomicDensity(bed2, col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
+draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
 ```
-
 
 ## GR-stimulated
 
@@ -280,11 +282,12 @@ color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=14
 
 bed1$col <-color.gradient(-log10(bed1$fdr + 1e-6))
 # bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
-lgd_links <- circlize::Legend(at = -log10(bed1$fdr + 1e-6), col_fun = color.gradient, 
-    title_position = "bottomleft", title = "Links")
+lgd_links <- Legend(at = round(seq(min(-log10(bed1$fdr + 1e-6)), max(-log10(bed1$fdr + 1e-6)), by = 0.5)), 
+                            col_fun = color.gradient, 
+    title_position = "topleft", title = "-log10(FDR)")
 
-cytoband <- read.cytoband(species = "hg19")$df
-cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+# cytoband <- read.cytoband(species = "hg19")$df
+# cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
 circos.clear()
 # circos.initialize()
 # circos.par("gap.degree" = rep(c(1, 20), 1))
@@ -293,10 +296,10 @@ circos.clear()
 # circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
 circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
 # circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
-circos.genomicDensity(bed1, col = "#FF000080")
-circos.genomicDensity(bed2, col = "#0000FF80")
+circos.genomicDensity(bed1, col = brewer_pallete[1])
+circos.genomicDensity(bed2, col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
-draw(lgd_links, x = unit(1, "npc") - unit(2, "mm"), y = unit(4, "mm"), just = c("right", "bottom"))
+draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
 ```
 
 ####------------
