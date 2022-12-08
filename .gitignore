@@ -9,6 +9,8 @@
 .Ruserdata
 data/
 output/data/
+input/
+result/data
 *.png
 *.jpg
 *.jpeg
@@ -38,6 +40,7 @@ output/data/
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
+input/*
 
 # OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
 .httr-oauth
