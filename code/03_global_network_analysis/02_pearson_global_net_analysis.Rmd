@@ -7,7 +7,12 @@ editor_options:
 library(dplyr)
 library(data.table)
 library(gdsfmt)
+
 library(ggplot2)
+library(RColorBrewer)
+library(circlize)
+library(ComplexHeatmap)
+
 library(mnda)
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
@@ -119,7 +124,10 @@ net_loc_count <- net_loc %>%
 ```
 
 ```{r}
-ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) + 
+brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
+plt.size       <- 12
+
+ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type, color = Type)) + 
   geom_bar(stat = "identity", position = "stack") +
   geom_text(data = net_loc_count[freq > 0.01], 
             aes(label = scales::percent(freq, accuracy = 1), y = freq), 
@@ -134,14 +142,13 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
         legend.position = "bottom",
         panel.grid.major = element_blank(),
         panel.background = element_blank(),
-        plot.title = element_text(size = 8),
-        axis.title = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = plt.size),
+        axis.title = element_text(size = plt.size, colour = "black"),
         axis.text.x = element_text(angle = 90, hjust = 0.5, colour = "black"),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
-  scale_fill_brewer(palette = "Set2")
-  # scale_color_manual(values = alpha(cbPalette, 0.75)) +
-  # scale_fill_manual(values = alpha(cbPalette, 0.75))
+  scale_fill_manual(values = alpha(brewer_pallete, 0.25)) +
+  scale_color_manual(values = alpha(brewer_pallete, 0.75))
 ```
 
 # Nr of CpGs per SNP 
@@ -240,8 +247,8 @@ circos.clear()
 # circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
 circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
 # circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
-circos.genomicDensity(bed1, col = "#FF000080")
-circos.genomicDensity(bed2, col = "#0000FF80")
+circos.genomicDensity(bed1, col = brewer_pallete[1])
+circos.genomicDensity(bed2, col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
 ```
 
@@ -272,7 +279,9 @@ color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=14
 }
 
 bed1$col <-color.gradient(-log10(bed1$fdr + 1e-6))
-bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+lgd_links <- circlize::Legend(at = -log10(bed1$fdr + 1e-6), col_fun = color.gradient, 
+    title_position = "bottomleft", title = "Links")
 
 cytoband <- read.cytoband(species = "hg19")$df
 cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
@@ -287,6 +296,7 @@ circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
 circos.genomicDensity(bed1, col = "#FF000080")
 circos.genomicDensity(bed2, col = "#0000FF80")
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
+draw(lgd_links, x = unit(1, "npc") - unit(2, "mm"), y = unit(4, "mm"), just = c("right", "bottom"))
 ```
 
 ####------------
