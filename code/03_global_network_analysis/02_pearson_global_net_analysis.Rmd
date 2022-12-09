@@ -12,6 +12,7 @@ library(ggplot2)
 library(RColorBrewer)
 library(circlize)
 library(ComplexHeatmap)
+library(eulerr)
 
 library(mnda)
 
@@ -43,6 +44,32 @@ veh_features <- rownames(veh_global_net$network) # 4'519
 olap <- intersect(dex_features, veh_features) # 758
 olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 566
 olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 192
+```
+
+## CpG level
+
+```{r out.width = "95%", include = T, eval = T}
+euler.tbl <- euler(list(dex = dex_features[grepl("cg", dex_features, ignore.case = T)], 
+                        veh = veh_features[grepl("cg", veh_features, ignore.case = T)]))
+
+plot(euler.tbl,
+     quantities = list(type = c("counts", "percent")),
+     fills = alpha(cbPalette[c(2, 1)], 0.5),
+     col = alpha(cbPalette[c(2, 1)], 1),
+     labels =  c("GR-stimulated", "Baseline"))
+```
+
+## SNP level
+
+```{r out.width = "95%", include = T, eval = T}
+euler.tbl <- euler(list(dex = dex_features[grepl("rs", dex_features, ignore.case = T)], 
+                        veh = veh_features[grepl("rs", veh_features, ignore.case = T)]))
+
+plot(euler.tbl,
+     quantities = list(type = c("counts", "percent")),
+     fills = alpha(cbPalette[c(2, 1)], 0.5),
+     col = alpha(cbPalette[c(2, 1)], 1),
+     labels =  c("GR-stimulated", "Baseline"))
 ```
 
 # Filter significant associations
@@ -197,6 +224,28 @@ ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) 
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "",
        x = "", y = "Nr. of CpGs per SNP") +
+  scale_color_manual(values = cbPalette) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
+
+```{r}
+plt_df <- rbind(veh_qtl_net %>% mutate(treatment = "Baseline"), 
+                dex_qtl_net %>% mutate(treatment = "GR-stimulated"))
+
+plt.size <- 12
+ggplot(plt_df, aes(x = treatment, y = value, color = treatment, fill = treatment)) +
+  geom_boxplot(position = position_dodge(width = 0.8)) +
+  theme(legend.position = "bottom", # c(0.9, 0.9), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(), 
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size), 
+        axis.title = element_text(size = plt.size),
+        axis.text = element_text(size = plt.size, colour = "black")) + 
+  labs(title = "",
+       x = "", y = "Pearson correlation coefficient") +
   scale_color_manual(values = cbPalette) +
   scale_fill_manual(values = alpha(cbPalette, 0.25))
 ```

@@ -12,6 +12,7 @@ source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
 
 cbPalette <- c("grey", "#0072B2")
+brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 ```
 
 ```{r include = F}
@@ -30,14 +31,14 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_
 # Test for significance
 
 ```{r}
-treatment <- "dex"
-dex_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds"))# smccnet_global_chr_all.rds"))
-
-treatment <- "veh"
-veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds")) # smccnet_global_chr_all.rds"))
-
-dex_global_net <- dex_global_net$network
-veh_global_net <- veh_global_net$network
+# treatment <- "dex"
+# dex_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds"))# smccnet_global_chr_all.rds"))
+# 
+# treatment <- "veh"
+# veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds")) # smccnet_global_chr_all.rds"))
+# 
+# dex_global_net <- dex_global_net$network
+# veh_global_net <- veh_global_net$network
 ```
 
 
@@ -50,6 +51,33 @@ veh_features <- rownames(veh_global_net) # 4'519
 olap <- intersect(dex_features, veh_features) # 758
 olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 566
 olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 192
+```
+
+
+## CpG level
+
+```{r out.width = "95%", include = T, eval = T}
+euler.tbl <- euler(list(dex = dex_features[grepl("cg", dex_features, ignore.case = T)], 
+                        veh = veh_features[grepl("cg", veh_features, ignore.case = T)]))
+
+plot(euler.tbl,
+     quantities = list(type = c("counts", "percent")),
+     fills = alpha(cbPalette[c(2, 1)], 0.5),
+     col = alpha(cbPalette[c(2, 1)], 1),
+     labels =  c("GR-stimulated", "Baseline"))
+```
+
+## SNP level
+
+```{r out.width = "95%", include = T, eval = T}
+euler.tbl <- euler(list(dex = dex_features[grepl("rs", dex_features, ignore.case = T)], 
+                        veh = veh_features[grepl("rs", veh_features, ignore.case = T)]))
+
+plot(euler.tbl,
+     quantities = list(type = c("counts", "percent")),
+     fills = alpha(cbPalette[c(2, 1)], 0.5),
+     col = alpha(cbPalette[c(2, 1)], 1),
+     labels =  c("GR-stimulated", "Baseline"))
 ```
 
 ```{r load-cpg-coordintaes, include = F}
@@ -103,19 +131,18 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
   facet_wrap(.~chr, nrow = 1, strip.position = "top") +
   labs(title = "",
        x = "",
-       y = "CpG frequency") +
+       y = "Variant frequency") +
   theme(legend.title = element_blank(), 
         legend.position = "bottom",
         panel.grid.major = element_blank(),
         panel.background = element_blank(),
-        plot.title = element_text(size = 8),
-        axis.title = element_text(size = 8, colour = "black"),
+        plot.title = element_text(size = plt.size),
+        axis.title = element_text(size = plt.size, colour = "black"),
         axis.text.x = element_text(angle = 90, hjust = 0.5, colour = "black"),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
-  scale_fill_brewer(palette = "Set2")
-  # scale_color_manual(values = alpha(cbPalette, 0.75)) +
-  # scale_fill_manual(values = alpha(cbPalette, 0.75))
+  scale_fill_manual(values = alpha(brewer_pallete, 0.25)) +
+  scale_color_manual(values = alpha(brewer_pallete, 0.75))
 ```
 
 <!-- ## SNPs -->
@@ -153,13 +180,13 @@ veh_qtl_net <- veh_global_net[rownames(veh_global_net) %in% snp_loc$SNP, colname
   as.matrix() %>% as.data.frame()
   
   # Transform net to long format 
-data_long <- veh_qtl_net %>% 
+veh_data_long <- veh_qtl_net %>% 
   rownames_to_column %>%
   gather(key = 'key', value = 'value', -rowname) %>%
   mutate(CpG_ID = key, SNP = rowname) %>%
   dplyr::select(SNP, CpG_ID, value)
 
-veh_qtl_cnt <- data_long[data_long$value >= thrsh, ] %>% 
+veh_qtl_cnt <- veh_data_long[veh_data_long$value >= thrsh, ] %>% 
   group_by(SNP) %>%
   tally() %>% 
   mutate(treatment = "Baseline")
@@ -171,13 +198,13 @@ dex_qtl_net <- dex_global_net[rownames(dex_global_net) %in% snp_loc$SNP, colname
   as.matrix() %>% as.data.frame()
   
   # Transform net to long format 
-data_long <- dex_qtl_net %>% 
+dex_data_long <- dex_qtl_net %>% 
   rownames_to_column %>%
   gather(key = 'key', value = 'value', -rowname) %>%
   mutate(CpG_ID = key, SNP = rowname) %>%
   dplyr::select(SNP, CpG_ID, value)
 
-dex_qtl_cnt <- data_long[data_long$value >= thrsh, ] %>% 
+dex_qtl_cnt <- dex_data_long[dex_data_long$value >= thrsh, ] %>% 
   group_by(SNP) %>%
   tally() %>% 
   mutate(treatment = "GR-stimulated")
@@ -213,6 +240,52 @@ CustomChordDiagram(veh_global_net, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrs
 ```
 
 
+```{r}
+treatment <- "Baseline"
+
+# snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n, decreasing = T), ][10, ]
+# cdm <- veh_global_net_flatten_sign[column %in% snp_max, ]
+cdm <- veh_data_long[order(veh_data_long$value, decreasing = T),]
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("CpG_ID" = "ID")) %>% 
+  mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("SNP" = "ID")) %>% 
+  mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
+head(cdm) 
+
+cdm$cpg_pos <- as.numeric(cdm$cpg_pos)
+cdm$snp_pos <- as.numeric(cdm$snp_pos)
+
+cdm <- setDT(cdm)
+
+bed1 = cdm[1:500, .(cpg_chr, cpg_pos, value, CpG_ID)] %>% select(chr = cpg_chr, start = cpg_pos, end = cpg_pos, value, cpg = CpG_ID)
+bed2 = cdm[1:500, .(snp_chr, snp_pos, value, SNP)] %>% select(chr = snp_chr, start = snp_pos, end = snp_pos, value, snp = SNP)
+
+color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=140) {
+  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
+}
+
+bed1$col <-color.gradient(bed1$value)
+# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1), 0.01), 
+                            col_fun = color.gradient, 
+    title_position = "topleft", title = "value")
+
+# cytoband <- read.cytoband(species = "hg19")$df
+# cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+circos.clear()
+# circos.initialize()
+# circos.par("gap.degree" = rep(c(1, 20), 1))
+# circos.initializeWithIdeogram(cytoband, plotType = NULL)
+# circos.genomicIdeogram(cytoband)
+# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
+circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
+# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
+circos.genomicDensity(bed1, col = brewer_pallete[1])
+circos.genomicDensity(bed2, col =  brewer_pallete[2])
+circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
+draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
+```
+
 ## GR-stimulated
 
 ```{r}
@@ -220,6 +293,52 @@ snp_max <- dex_qtl_cnt[order(dex_qtl_cnt$n), ][1:10,]
 CustomChordDiagram(dex_global_net, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
 ```
 
+
+```{r}
+treatment <- "GR-stimulated"
+
+# snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n, decreasing = T), ][10, ]
+# cdm <- veh_global_net_flatten_sign[column %in% snp_max, ]
+cdm <- dex_data_long[order(dex_data_long$value, decreasing = T),]
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("CpG_ID" = "ID")) %>% 
+  mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
+cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("SNP" = "ID")) %>% 
+  mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
+head(cdm) 
+
+cdm$cpg_pos <- as.numeric(cdm$cpg_pos)
+cdm$snp_pos <- as.numeric(cdm$snp_pos)
+
+cdm <- setDT(cdm)
+
+bed1 = cdm[1:500, .(cpg_chr, cpg_pos, value, CpG_ID)] %>% select(chr = cpg_chr, start = cpg_pos, end = cpg_pos, value, cpg = CpG_ID)
+bed2 = cdm[1:500, .(snp_chr, snp_pos, value, SNP)] %>% select(chr = snp_chr, start = snp_pos, end = snp_pos, value, snp = SNP)
+
+color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=140) {
+  return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
+}
+
+bed1$col <-color.gradient(bed1$value)
+# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1), 0.01), 
+                            col_fun = color.gradient, 
+    title_position = "topleft", title = "value")
+
+# cytoband <- read.cytoband(species = "hg19")$df
+# cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+circos.clear()
+# circos.initialize()
+# circos.par("gap.degree" = rep(c(1, 20), 1))
+# circos.initializeWithIdeogram(cytoband, plotType = NULL)
+# circos.genomicIdeogram(cytoband)
+# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
+circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
+# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
+circos.genomicDensity(bed1, col = brewer_pallete[1])
+circos.genomicDensity(bed2, col =  brewer_pallete[2])
+circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
+draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
+```
 ####------------
 # 4. Check how many cis / trans
 
