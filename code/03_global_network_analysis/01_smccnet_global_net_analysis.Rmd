@@ -250,7 +250,9 @@ cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by
   mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
 cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("SNP" = "ID")) %>% 
   mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
-head(cdm) 
+head(cdm) #  rs28513678 cg16400794 1.0000000    chr1 27709850    chr3   3776878
+
+veh_cdm <- cdm
 
 cdm$cpg_pos <- as.numeric(cdm$cpg_pos)
 cdm$snp_pos <- as.numeric(cdm$snp_pos)
@@ -304,7 +306,9 @@ cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by
   mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
 cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("SNP" = "ID")) %>% 
   mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
-head(cdm) 
+head(cdm) # rs61904579 cg15978899 0.9385598    chr6  30882994   chr11 56472268
+
+dex_cdm <- cdm
 
 cdm$cpg_pos <- as.numeric(cdm$cpg_pos)
 cdm$snp_pos <- as.numeric(cdm$snp_pos)
@@ -339,6 +343,47 @@ circos.genomicDensity(bed2, col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
 draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
 ```
+
+## Examples
+
+```{r, include = F, eval = T}
+source("~/mpip/projects/dex-stim-human-array/code/integrative/util.R")
+
+snp.df              <- LoadGenotype() %>% setDT()
+methyl.beta.dex.df  <- LoadMethylBeta(treatment = "dex") %>% setDT()
+methyl.beta.veh.df  <- LoadMethylBeta(treatment = "veh") %>% setDT()
+```
+
+### Both
+
+```{r out.width = "95%", include = T, eval = T}
+dex_cdm <- paste(dex_cdm$SNP, dex_cdm$CpG_ID, sep = "-")
+ceh_cdm <- paste(veh_cdm$SNP, veh_cdm$CpG_ID, sep = "-")
+
+intersect_cdm   <- inner_join(dex_cdm, veh_cdm, by = c("SNP", "CpG_ID", "meQTL"))
+(selected_meqtl <- intersect_cdm[25,]) # rs4881713 cg01572694 0.8213771     chr17  46657555     chr11  50327851
+
+ProcessGetBoxPlot(methyl.beta.veh.df, methyl.beta.dex.df, snp.df, selected_meqtl, fdr.thr = 0.05)
+```
+
+### Baseline
+
+```{r out.width = "95%", include = T, eval = T}
+veh_cdm_unique  <- veh_cdm[!(veh_cdm$meQTL %in% intersect_cdm$meQTL),]
+(selected_meqtl <- veh_cdm_unique[6, ]) # rs10838661 cg16400794 0.9564631    chr1 27709850   chr11 5830617
+
+ProcessGetBoxPlot(methyl.beta.veh.df, methyl.beta.dex.df, snp.df, selected_meqtl, fdr.thr = 0.05)
+```
+
+### GR-stimulated
+
+```{r out.width = "95%", include = T, eval = T}
+dex_cdm_unique  <- dex_cdm[!(dex_cdm$meQTL %in% intersect_cdm$meQTL),]
+(selected_meqtl <- dex_cdm_unique[450, ]) #rs12224066 cg21592059 0.7915405    chr8 74332256   chr11 50228358 rs12224066-cg21592059
+
+ProcessGetBoxPlot(methyl.beta.veh.df, methyl.beta.dex.df, snp.df, selected_meqtl, fdr.thr = 0.05)
+```
+
 ####------------
 # 4. Check how many cis / trans
 
