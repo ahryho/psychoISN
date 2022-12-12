@@ -7,6 +7,7 @@ editor_options:
 library(dplyr)
 library(data.table)
 library(gdsfmt)
+library(RColorBrewer)
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
