@@ -55,12 +55,14 @@ library(gdsfmt)
 library(ggplot2)
 library(dendextend)
 library(factoextra)
+library(RColorBrewer)
 ```
 
 ```{r}
 # source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 # dir_pre <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 # dnam_pca_dir <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/output/data/methylation/02_dmp/")
+brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 
 source("~/bio/code/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 
@@ -94,9 +96,14 @@ dist_veh_df  <- mutate(dist_veh_df, DNA_ID = colnames(dist_veh_df), cluster = as
 count(dist_veh_df, cluster)
 
 dist_veh_df <- dist_veh_df[match(pheno$DNA_ID, dist_veh_df$DNA_ID), ] 
-dist_veh_df <- left_join(dist_veh_df, pheno[, c("DNA_ID", "Status")]) %>% 
-  mutate(Status = ifelse(Status == 0, "Control", "Case"))
+dist_veh_df <- left_join(dist_veh_df,pheno[, .(DNA_ID, Status, Age, mAge_Hovath, BMI_D1, Sex)]) %>% 
+  mutate(Status = ifelse(Status == 0, "Control", "Case"),
+         Sex = ifelse(Sex == 1, "Male", "Female"))
+```
 
+## Individual plot
+
+```{r}
 fviz_cluster(list(data = dist_veh_df[, 1:196], 
                   cluster = dist_veh_df$cluster),
              geom = "point",
@@ -107,14 +114,48 @@ fviz_cluster(list(data = dist_veh_df[, 1:196],
 
 ```
 
-```{r include = F, eval = T}
-plt_df <- left_join(dist_veh_df, pheno[, .(DNA_ID, Age, mAge_Hovath, BMI_D1, Sex)])
+## Sex
+
+```{r}
+veh_sex_cnt <- dist_veh_df %>% select(cluster, Sex) %>%
+  group_by(cluster, Sex) %>%
+  tally() %>%
+  group_by() %>%
+  mutate(freq = n/sum(n))
 ```
+
+```{r out.width = "100%", fig.cap = "", include = T, eval = T}
+plt.size <- 12
+
+ggplot(veh_sex_cnt, aes(x = cluster, y = n, fill = Sex, color = Sex)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = plt.size / 3, 
+            color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "cluster",
+       y = "Percentage of individuals", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = "right",
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size),
+        axis.title = element_text(size = plt.size),
+        axis.text.x = element_text(angle = 0, hjust = 0.7, size = plt.size - 2),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = brewer_pallete) +
+  scale_fill_manual(values = alpha(brewer_pallete, 0.25))
+```
+
+## BMI
 
 ```{r}
 plt.size <- 10
-ggplot(plt_df, aes(x = cluster, y = BMI_D1)) +
-  geom_violin(aes(color = cluster, fill = cluster)) +
+ggplot(dist_veh_df, aes(x = cluster, y = BMI_D1)) +
+  geom_violin(aes(color = cluster)) +
   geom_boxplot(width = 0.05, fill = "white", color = "black") +
   theme(legend.position = "none", # c(0.9, 0.9), 
         legend.title = element_blank(), 
@@ -125,16 +166,14 @@ ggplot(plt_df, aes(x = cluster, y = BMI_D1)) +
         axis.title = element_text(size = plt.size),
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "",
-       y = "BMI") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_fill_brewer(palette = "Set2")
+       y = "BMI") 
 ```
-
+## Age
 
 ```{r}
 plt.size <- 10
-ggplot(plt_df, aes(x = cluster, y = Age)) +
-  geom_violin(aes(color = cluster, fill = cluster)) +
+ggplot(dist_veh_df, aes(x = cluster, y = Age)) +
+  geom_violin(aes(color = cluster)) +
   geom_boxplot(width = 0.05, fill = "white", color = "black") +
   theme(legend.position = "none", # c(0.9, 0.9), 
         legend.title = element_blank(), 
@@ -145,9 +184,7 @@ ggplot(plt_df, aes(x = cluster, y = Age)) +
         axis.title = element_text(size = plt.size),
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "",
-       y = "Age") +
-  scale_color_brewer(palette = "Dark2") +
-  scale_fill_brewer(palette = "Set2")
+       y = "Age") 
 ```
 
 # GR-induced
@@ -161,6 +198,8 @@ dist_mtrx   <- as.dist(dist_dex_df)
 hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
 ```
 
+## Dendogram
+
 ```{r}
 nr_cluster  <- 5
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
@@ -170,15 +209,19 @@ avg_dend_obj <- as.dendrogram(hclust_avg)
 avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
 plot(avg_col_dend)
 ```
+## Individual plot
 
 ```{r}
 dist_dex_df  <- mutate(dist_dex_df, DNA_ID = colnames(dist_dex_df), cluster = as.factor(cut_avg))
 count(dist_dex_df, cluster)
 
 dist_dex_df <- dist_dex_df[match(pheno$DNA_ID, dist_dex_df$DNA_ID), ] 
-dist_dex_df <- left_join(dist_dex_df, pheno[, c("DNA_ID", "Status")]) %>% 
-  mutate(Status = ifelse(Status == 0, "Control", "Case"))
+dist_dex_df <- left_join(dist_dex_df, pheno[, .(DNA_ID, Status, Age, mAge_Hovath, BMI_D1, Sex)]) %>% 
+  mutate(Status = ifelse(Status == 0, "Control", "Case"),
+         Sex = ifelse(Sex == 1, "Male", "Female"))
+```
 
+```{r}
 fviz_cluster(list(data = dist_dex_df[, 1:196], 
                   cluster = dist_dex_df$cluster),
              geom = "point",
@@ -186,6 +229,89 @@ fviz_cluster(list(data = dist_dex_df[, 1:196],
   # scale_shape_manual(values = pheno$Status) +
   geom_point(aes(shape = dist_dex_df$Status), alpha = 0.75, size = 2) +
   theme_minimal() + theme(legend.title=element_blank())
+```
 
+## Sex
+
+```{r}
+dex_sex_cnt <- dist_dex_df %>% select(cluster, Sex) %>%
+  group_by(cluster, Sex) %>%
+  tally() %>%
+  group_by() %>%
+  mutate(freq = n/sum(n))
+```
+
+```{r out.width = "100%", fig.cap = "", include = T, eval = T}
+plt.size <- 12
+
+ggplot(dex_sex_cnt, aes(x = cluster, y = n, fill = Sex, color = Sex)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = plt.size / 3, 
+            color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "cluster",
+       y = "Percentage of individuals", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = "right",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size),
+        axis.title = element_text(size = plt.size),
+        axis.text.x = element_text(angle = 0, hjust = 0.7, size = plt.size - 2),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = brewer_pallete) +
+  scale_fill_manual(values = alpha(brewer_pallete, 0.25))
+```
+
+
+```{r}
+fviz_cluster(list(data = dist_dex_df[, 1:196], 
+                  cluster = dist_dex_df$cluster),
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  # scale_shape_manual(values = pheno$Status) +
+  geom_point(aes(shape = dist_dex_df$Sex, color = dist_dex_df$cluster), alpha = 0.75, size = 3) +
+  theme_minimal() + theme(legend.title=element_blank())
+```
+
+## BMI
+
+```{r}
+plt.size <- 10
+ggplot(dist_dex_df, aes(x = cluster, y = BMI_D1)) +
+  geom_violin(aes(color = cluster)) +
+  geom_boxplot(width = 0.05, fill = "white", color = "black") +
+  theme(legend.position = "none", # c(0.9, 0.9), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(), 
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size), 
+        axis.title = element_text(size = plt.size),
+        axis.text = element_text(size = plt.size, colour = "black")) + 
+  labs(title = "",
+       y = "BMI") 
+```
+
+## Age
+
+```{r}
+plt.size <- 10
+ggplot(dist_dex_df, aes(x = cluster, y = Age)) +
+  geom_violin(aes(color = cluster)) +
+  geom_boxplot(width = 0.05, fill = "white", color = "black") +
+  theme(legend.position = "none", # c(0.9, 0.9), 
+        legend.title = element_blank(), 
+        legend.text = element_text(size = plt.size),
+        panel.grid.major = element_blank(), 
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size), 
+        axis.title = element_text(size = plt.size),
+        axis.text = element_text(size = plt.size, colour = "black")) + 
+  labs(title = "",
+       y = "Age") 
 ```
 
