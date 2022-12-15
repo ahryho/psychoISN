@@ -17,6 +17,7 @@ brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 ```
 
 ```{r include = F}
+dir_pre  <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 rslt_dir <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results/5_fold_cv/all/"
 setwd(rslt_dir)
 ```
@@ -122,6 +123,7 @@ net_loc_count <- net_loc %>%
 ```
 
 ```{r}
+plt.size <- 12
 ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) + 
   geom_bar(stat = "identity", position = "stack") +
   geom_text(data = net_loc_count[freq > 0.01], 
@@ -148,7 +150,7 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
 
 <!-- ## SNPs -->
 
-```{r include = F}
+```{r include = F, eval = F}
 ggplot(net_loc_count[Type == "SNP"], aes(x = chr, y = freq, fill = treatment, color = treatment)) + 
   geom_bar(stat = "identity", position = "stack") +
   geom_text(aes(label = scales::percent(freq, accuracy = 0.1), y = freq), 
@@ -348,79 +350,55 @@ draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom
 ## Examples
 
 ```{r, include = F, eval = T}
-source("~/mpip/projects/dex-stim-human-array/code/integrative/util.R")
+chr         <- "all"
+snps_gds_fn <- paste0(dir_pre, "input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
+snps_mtrx   <- LoadGenotype(snps_gds_fn, is_ld = F)
+snps_mtrx   <- t(snps_mtrx) %>% as.data.frame() %>% setDT(keep.rownames = T)
+colnames(snps_mtrx)[[1]] <- "SNP"
 
-snp.df              <- LoadGenotype() %>% setDT()
-methyl.beta.dex.df  <- LoadMethylBeta(treatment = "dex") %>% setDT()
-methyl.beta.veh.df  <- LoadMethylBeta(treatment = "veh") %>% setDT()
+treatment   <- "veh"
+dnam_gds_fn <- paste0(dir_pre, "/input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
+methyl_beta_veh_df <- LoadMethyl(dnam_gds_fn)
+methyl_beta_veh_df <- t(methyl_beta_veh_df) %>% as.data.frame() %>% setDT(keep.rownames = T)
+colnames(methyl_beta_veh_df)[[1]] <- "CpG_ID"
+
+treatment   <- "dex"
+dnam_gds_fn <- paste0(dir_pre, "/input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
+methyl_beta_dex_df  <- LoadMethyl(dnam_gds_fn) 
+methyl_beta_dex_df  <- t(methyl_beta_dex_df) %>% as.data.frame() %>% setDT(keep.rownames = T)
+colnames(methyl_beta_dex_df)[[1]] <- "CpG_ID"
+```
+
+```{r include = F}
+source("~/mpip/projects/dex-stim-human-array/code/integrative/util.R")
 ```
 
 ### Both
 
 ```{r out.width = "95%", include = T, eval = T}
-dex_cdm <- paste(dex_cdm$SNP, dex_cdm$CpG_ID, sep = "-")
-ceh_cdm <- paste(veh_cdm$SNP, veh_cdm$CpG_ID, sep = "-")
+dex_cdm[["meQTL"]] <- paste(dex_cdm$SNP, dex_cdm$CpG_ID, sep = "-")
+veh_cdm[["meQTL"]] <- paste(veh_cdm$SNP, veh_cdm$CpG_ID, sep = "-")
 
 intersect_cdm   <- inner_join(dex_cdm, veh_cdm, by = c("SNP", "CpG_ID", "meQTL"))
 (selected_meqtl <- intersect_cdm[25,]) # rs4881713 cg01572694 0.8213771     chr17  46657555     chr11  50327851
 
-ProcessGetBoxPlot(methyl.beta.veh.df, methyl.beta.dex.df, snp.df, selected_meqtl, fdr.thr = 0.05)
+ProcessGetBoxPlot(methyl_beta_veh_df, methyl_beta_dex_df, snps_mtrx, selected_meqtl, fdr.thr = 0.05)
 ```
 
 ### Baseline
 
 ```{r out.width = "95%", include = T, eval = T}
 veh_cdm_unique  <- veh_cdm[!(veh_cdm$meQTL %in% intersect_cdm$meQTL),]
-(selected_meqtl <- veh_cdm_unique[6, ]) # rs10838661 cg16400794 0.9564631    chr1 27709850   chr11 5830617
+(selected_meqtl <- veh_cdm_unique[5, ]) # rs2324663 cg16400794 0.8511602    chr1 27709850    chr3 8649462 rs2324663-cg16400794
 
-ProcessGetBoxPlot(methyl.beta.veh.df, methyl.beta.dex.df, snp.df, selected_meqtl, fdr.thr = 0.05)
+ProcessGetBoxPlot(methyl_beta_veh_df, methyl_beta_dex_df, snps_mtrx, selected_meqtl, fdr.thr = 0.05)
 ```
 
 ### GR-stimulated
 
 ```{r out.width = "95%", include = T, eval = T}
 dex_cdm_unique  <- dex_cdm[!(dex_cdm$meQTL %in% intersect_cdm$meQTL),]
-(selected_meqtl <- dex_cdm_unique[450, ]) #rs12224066 cg21592059 0.7915405    chr8 74332256   chr11 50228358 rs12224066-cg21592059
+(selected_meqtl <- dex_cdm_unique[25,  ]) # rs79189796 cg15535683 0.8752459    chr7 122553915   chr11 50123506 rs79189796-cg15535683
 
-ProcessGetBoxPlot(methyl.beta.veh.df, methyl.beta.dex.df, snp.df, selected_meqtl, fdr.thr = 0.05)
+ProcessGetBoxPlot(methyl_beta_veh_df, methyl_beta_dex_df, snps_mtrx, selected_meqtl, fdr.thr = 0.05)
 ```
-
-####------------
-# 4. Check how many cis / trans
-
-# modules_features <- features[do.call(c, modules)]
-# 
-# cpg_loc[CpG_ID %in% modules_features]
-# snp_loc[SNP %in% modules_features]
-
-####------------
-
-# 5. Coord plot 
-
-## 5.1. Baseline
-
-net <- veh_global_net %>% as.matrix() %>% as.data.frame()
-net <- veh_global_net[!rownames(veh_global_net) %in% olap,
-                      !colnames(veh_global_net) %in% olap] %>% as.matrix() %>% as.data.frame()
-CustomChordDiagram(net, cpg_loc, snp_loc, thrsh = 0.80)
-
-## 5.2. Post-dexamethasone
-
-net <- dex_global_net %>% as.matrix() %>% as.data.frame()
-CustomChordDiagram(net, cpg_loc, snp_loc, thrsh = 0.25)
-
-## 5.3. Net with olap features betweeb pre- and post-dex
-
-### 5.3.1 Baseline
-
-net <- veh_global_net[olap, olap] %>% as.matrix() %>% as.data.frame()
-CustomChordDiagram(net, cpg_loc, snp_loc, thrsh = 0)
-
-
-
-
-
-# Get CpGs' and SNPs' locations for only features present in the network "net"
-net_cpg_loc <- cpg_loc[CpG_ID %in% colnames(net)] %>% mutate(ID = CpG_ID) %>% select(-CpG_ID)
-net_snp_loc <- snp_loc[SNP %in% colnames(net)] %>% mutate(ID = SNP) %>% select(-SNP)
-net_loc     <- rbind(net_cpg_loc, net_snp_loc)[match(rownames(net), ID)]
