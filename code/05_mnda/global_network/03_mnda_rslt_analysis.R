@@ -1,3 +1,5 @@
+library(data.table)
+
 library(mnda)
 library(keras)
 # install_keras()
