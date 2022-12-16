@@ -238,12 +238,6 @@ ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) 
 ## Basline
 
 ```{r}
-snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n), ][10:15,]
-CustomChordDiagram(veh_global_net, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
-```
-
-
-```{r}
 treatment <- "Baseline"
 
 # snp_max <- veh_qtl_cnt[order(veh_qtl_cnt$n, decreasing = T), ][10, ]
@@ -292,12 +286,6 @@ draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom
 ```
 
 ## GR-stimulated
-
-```{r}
-snp_max <- dex_qtl_cnt[order(dex_qtl_cnt$n), ][1:10,]
-CustomChordDiagram(dex_global_net, cpg_loc, snp_loc[SNP %in% snp_max$SNP,], thrsh = 0)
-```
-
 
 ```{r}
 treatment <- "GR-stimulated"
