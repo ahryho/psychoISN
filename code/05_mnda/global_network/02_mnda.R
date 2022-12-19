@@ -14,8 +14,8 @@ library(tictoc)
 # out_fn      <- as.character(args[2]) 
 
 rslt_dir    <- "~/bio/code/kul/dex-stim-human-array-isns/results/data/5_fold_cv/all/"
-input_graph <- paste0(rslt_dir, "mnda/global_network_mnda_input_2K.csv")
-out_fn      <- paste0(rslt_dir, "mnda/global_netqork_mnda_distances_2K.rds")
+input_graph <- paste0(rslt_dir, "mnda/global_network/global_network_mnda_input_2K.csv")
+out_fn      <- paste0(rslt_dir, "mnda/global_network/global_network_mnda_distances_2K.rds")
 
 ## Load data
 
@@ -26,7 +26,7 @@ graph_data <- fread(input_graph, sep = ";")
 print("Start creating embedding space ...", quote = F)
 tic("Create embedding space")
 
-embedding_space_list <- mnda_embedding_2layer(graph_data, train.rep = 100, 
+embedding_space_list <- mnda_embedding_2layer(graph_data, train.rep = 50, 
                                               walk.rep = 100,
                                               n.steps = 10,
                                               embedding.size = 10, 
