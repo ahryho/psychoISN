@@ -16,17 +16,16 @@ veh_global_net  <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global
 
 ## Flatten global atrices
 
-dex_flat_df <- flatten_matrix(dex_global_net)
-veh_flat_df <- flatten_matrix(veh_global_net)
+dex_flat_df <- flatten_matrix(dex_global_net) %>% select(V1 = row, V2 = column, weight_dex = weight)
+veh_flat_df <- flatten_matrix(veh_global_net) %>% select(V1 = row, V2 = column, weight_veh = weight)
 
-flat_full_df     <- full_join(dex_flat_df, veh_flat_df, by = c("row", "column")) %>% 
-  select(V1 = row, V2 = column, weight_veh = weight.x, weight_dex = weight.y) %>%
+flat_full_df     <- full_join(veh_flat_df, dex_flat_df, by = c("V1", "V2")) %>% 
   replace(is.na(.), 0) %>% setDT()
 
 # flat_inner_df <- flat_full_df[weight_veh & weight_dex != 0] %>% arrange(weight_veh, weight_dex)
 
-flat_df <- rbind(flat_full_df[weight_dex == 0 & weight_veh >= 0.9 ], # disappearing
-                 flat_full_df[weight_veh == 0 & weight_dex >= 0.8 ], # appearing
+flat_df <- rbind(flat_full_df[weight_dex == 0 & weight_veh >= 0.85 ], # disappearing
+                 flat_full_df[weight_veh == 0 & weight_dex >= 0.85 ], # appearing
                  flat_full_df[weight_veh >= 0.2 & weight_dex >= 0.2] # remaining
                  )
 
@@ -40,17 +39,22 @@ associations_of_interest <- flat_df[, 1:2]
 isns_fn_lst <- list.files(paste0("dex/networks"), pattern = "individual", full.names = T)
 
 lapply(isns_fn_lst, function(fn){
+  sample_id <- gsub(".*individual_(.+).rds", "\\1", fn)
+  
   dex_isn  <- readRDS(paste0(rslt_dir, "dex/networks/smccnet_global_chr_all.rds"))
   veh_isn  <- readRDS(paste0(rslt_dir, "veh/networks/smccnet_global_chr_all.rds"))
   
   ## Flatten global atrices
   
-  dex_flat_df <- flatten_matrix(dex_global_net)
-  veh_flat_df <- flatten_matrix(veh_global_net)
+  dex_flat_df  <- flatten_matrix(dex_isn) %>% select(V1 = row, V2 = column, weight_dex = weight)
+  veh_flat_df  <- flatten_matrix(veh_isn) %>% select(V1 = row, V2 = column, weight_veh = weight)
   
-  flat_full_df     <- full_join(dex_flat_df, veh_flat_df, by = c("row", "column")) %>% 
-    select(V1 = row, V2 = column, weight_veh = weight.x, weight_dex = weight.y) %>%
+  flat_full_df <- full_join(veh_flat_df, dex_flat_df, by = c("V1", "V2")) %>%
     replace(is.na(.), 0) %>% setDT()
   
   isn_mnda_input <- inner_join(associations_of_interest, flat_full_df)
+  
+  fwrite(isn_mnda_input, 
+         paste0("mnda/isns/isn_mnda_input_", sample_id, ".csv"), 
+         quote = F, sep = ";")
 })
