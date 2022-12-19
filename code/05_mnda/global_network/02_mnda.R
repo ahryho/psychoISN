@@ -27,7 +27,7 @@ print("Start creating embedding space ...", quote = F)
 tic("Create embedding space")
 
 embedding_space_list <- mnda_embedding_2layer(graph_data, train.rep = 50, 
-                                              walk.rep = 100,
+                                              walk.rep = 50,
                                               n.steps = 10,
                                               embedding.size = 10, 
                                               batch.size = 32,
