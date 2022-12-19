@@ -19,16 +19,16 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_
 dex_flat_df <- flatten_matrix(dex_global_net)
 veh_flat_df <- flatten_matrix(veh_global_net)
 
-flat_full_df     <- full_join(dex_flat_df, veh_flat_df, by = c("row", "column")) %>% 
+flat_full_df     <- full_join(veh_flat_df, dex_flat_df, by = c("row", "column")) %>% 
   select(V1 = row, V2 = column, weight_veh = weight.x, weight_dex = weight.y) %>%
   replace(is.na(.), 0) %>% setDT()
 
-flat_inner_df <- flat_full_df[weight_veh & weight_dex != 0] %>% arrange(weight_veh, weight_dex)
+# flat_inner_df <- flat_full_df[weight_veh & weight_dex != 0] %>% arrange(weight_veh, weight_dex)
 
 
-flat_df <- rbind(flat_full_df[weight_dex == 0 & weight_veh >= 0.95 ], # disappearing
+flat_df <- rbind(flat_full_df[weight_dex == 0 & weight_veh >= 0.85 ], # disappearing
                  flat_full_df[weight_veh == 0 & weight_dex >= 0.85 ], # appearing
-                 flat_full_df[weight_veh >= 0.2 & weight_dex >= 0.2] # remaining
+                 flat_full_df[weight_veh >= 0.1 & weight_dex >= 0.1] # remaining
                  )
 
-fwrite(flat_df, "mnda/global_network_mnda_input.csv", quote = F, sep = ";")
+fwrite(flat_df, "mnda/global_network/global_network_mnda_input_2K.csv", quote = F, sep = ";")
