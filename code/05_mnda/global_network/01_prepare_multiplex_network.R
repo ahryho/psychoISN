@@ -16,11 +16,12 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_
 
 ## Flatten matrices
 
-dex_flat_df <- flatten_matrix(dex_global_net)
-veh_flat_df <- flatten_matrix(veh_global_net)
+dex_flat_df <- flatten_matrix(dex_global_net) %>% 
+  select(V1 = row, V2 = column, weight_dex = weight)
+veh_flat_df <- flatten_matrix(veh_global_net) %>% 
+  select(V1 = row, V2 = column, weight_veh = weight)
 
-flat_full_df     <- full_join(veh_flat_df, dex_flat_df, by = c("row", "column")) %>% 
-  select(V1 = row, V2 = column, weight_veh = weight.x, weight_dex = weight.y) %>%
+flat_full_df     <- full_join(veh_flat_df, dex_flat_df, by = c("V1", "V2")) %>% 
   replace(is.na(.), 0) %>% setDT()
 
 # flat_inner_df <- flat_full_df[weight_veh & weight_dex != 0] %>% arrange(weight_veh, weight_dex)
