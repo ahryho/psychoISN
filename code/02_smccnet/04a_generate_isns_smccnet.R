@@ -135,8 +135,11 @@ networks <- parSapply(cl, 1:nrow(pheno_trait_vec), function(sample_idx){
   sample_sim_mtrx <- nr_samples * (global_sim_mtrx - minus_sample_sim_mtrx) +  minus_sample_sim_mtrx
   
   print("Saving an individual network ", quote = F)
-  saveRDS(list(DNA_ID = sample_dna_id, network = sample_sim_mtrx), 
+  saveRDS(sample_sim_mtrx, 
           file = paste0(cv_dir, "/networks/smccnet_individual_", sample_dna_id, "_chr_", chr, ".rds"))
+          
+  # saveRDS(list(DNA_ID = sample_dna_id, network = sample_sim_mtrx), 
+  #        file = paste0(cv_dir, "/networks/smccnet_individual_", sample_dna_id, "_chr_", chr, ".rds"))
   
   return(sample_sim_mtrx)
 })
