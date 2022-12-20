@@ -1,0 +1,207 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+```{r include = F}
+library(dplyr)
+library(data.table)
+library(gdsfmt)
+library(RColorBrewer)
+
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
+
+cbPalette <- c("grey", "#0072B2")
+brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
+```
+
+```{r include = F}
+dir_pre  <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
+rslt_dir <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results/5_fold_cv/all/"
+setwd(rslt_dir)
+```
+
+```{r load-anno, include = F}
+treatment       <- "dex"
+dex_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
+dex_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
+
+
+treatment       <- "veh"
+veh_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
+veh_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
+
+# loc_df <- rbind(dex_loc_df, veh_loc_df) %>% unique() %>% mutate(ID = rownames(loc_df)) %>%
+#   select(chr = seqnames, start, end, ID, SYMBOL)
+```
+
+# Functional annotation of CpGs
+
+## CpG Islands
+
+```{r}
+islands_anno <- rbind(as.data.frame(veh_cpg_anno_gr)[, c("CpG_ID", "Relation_to_Island")] %>% mutate(Treatment = "Baseline"),
+                      as.data.frame(dex_cpg_anno_gr)[, c("CpG_ID", "Relation_to_Island")] %>% mutate(Treatment = "GR-stimulated")) %>% 
+  group_by(Treatment, Relation_to_Island) %>% 
+  tally() %>%
+  group_by(Treatment) %>%
+  mutate(freq = n/sum(n)) 
+
+islands_anno$Relation_to_Island <- factor(islands_anno$Relation_to_Island, 
+                                          levels = c("N_Shelf", "N_Shore", "Island", "S_Shore", "S_Shelf", "OpenSea"))
+```
+
+```{r out.width = "90%", fig.cap = "Distribution of locations of CpGs in different genomic regions in relation to CpG Island", include = T, eval = T}
+plt_size <- 12
+
+ggplot(islands_anno, aes(x = Relation_to_Island, y = freq, fill = Treatment, color = Treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = 3, color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+       y = "", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = c(.15, .75),
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt_size),
+        axis.title = element_text(size = plt_size),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = alpha(cbPalette, 0.5)) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
+## Gene regions 
+
+```{r}
+gene_regions_anno <- rbind(as.data.frame(veh_cpg_anno_gr)[, c("CpG_ID", "annotation")] %>% mutate(Treatment = "Baseline"),
+                      as.data.frame(dex_cpg_anno_gr)[, c("CpG_ID", "annotation")] %>% mutate(Treatment = "GR-stimulated")) %>% 
+  group_by(Treatment, annotation) %>% 
+  tally() %>%
+  group_by(Treatment) %>%
+  mutate(freq = n/sum(n)) 
+
+gene_regions_anno$annotation <- factor(gene_regions_anno$annotation, 
+                                          levels = c("Promoter (2-3kb)", "Promoter (1-2kb)", "Promoter (<=1kb)",
+                                                     "5' UTR", "1st Exon", "1st Intron", "Other Exon", "Other Intron",
+                                                     "3' UTR", "Downstream (<=300)", "Distal Intergenic"))
+```
+
+
+```{r out.width = "90%", fig.cap = "Distribution of locations of CpGs in different genomic regions in relation to nearby gene", include = T, eval = T}
+plt_size <- 12
+
+ggplot(gene_regions_anno, aes(x = annotation, y = freq, fill = Treatment, color = Treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = 3, color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+       y = "", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = "bottom",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt_size),
+        axis.title = element_text(size = plt_size),
+        axis.text.x = element_text(angle = 10, hjust = 0.5, colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = alpha(cbPalette, 0.5)) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
+# Functional annotation of SNPs
+
+
+```{r}
+gene_regions_anno <- rbind(as.data.frame(veh_snp_anno_gr)[, c("annotation")] %>% mutate(SNP = names(veh_snp_anno_gr), Treatment = "Baseline"),
+                      as.data.frame(dex_snp_anno_gr)[, c("annotation")] %>% mutate(SNP = names(dex_snp_anno_gr), Treatment = "GR-stimulated")) %>% 
+  group_by(Treatment, annotation) %>% 
+  tally() %>%
+  group_by(Treatment) %>%
+  mutate(freq = n/sum(n)) 
+
+gene_regions_anno$annotation <- factor(gene_regions_anno$annotation, 
+                                          levels = c("Promoter (2-3kb)", "Promoter (1-2kb)", "Promoter (<=1kb)",
+                                                     "5' UTR", "1st Exon", "1st Intron", "Other Exon", "Other Intron",
+                                                     "3' UTR", "Downstream (<=300)", "Distal Intergenic"))
+```
+
+
+```{r out.width = "90%", fig.cap = "Distribution of locations of SNPs in different genomic regions in relation to nearby gene", include = T, eval = T}
+plt_size <- 12
+
+ggplot(gene_regions_anno, aes(x = annotation, y = freq, fill = Treatment, color = Treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = 3, color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+       y = "", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = "bottom",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt_size),
+        axis.title = element_text(size = plt_size),
+        axis.text.x = element_text(angle = 10, hjust = 0.5, colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = alpha(cbPalette, 0.5)) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
+# Enrichment analysis of SNPs
+
+```{r}
+library(DOSE)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+
+dex_snp_gene_symbol_lst <- dex_snp_anno_gr$SYMBOL %>% unique()
+
+gene_map_df <- bitr(dex_snp_gene_symbol_lst, fromType = "SYMBOL",
+        toType = c("ENSEMBL", "ENTREZID"),
+        OrgDb = org.Hs.eg.db)
+
+x <- enrichDO(gene          = unique(gene_map_df$ENTREZID),
+              ont           = "DO",
+              pvalueCutoff  = 1,
+              pAdjustMethod = "BH",
+              minGSSize     = 1,
+              maxGSSize     = 500,
+              qvalueCutoff  = 1,
+              readable      = FALSE)
+
+x <-  enrichDGN(unique(gene_map_df$ENTREZID))
+
+snp <- names(veh_snp_anno_gr)
+
+dgnv <- enrichDGNv(snp,
+                     pvalueCutoff = 0.05,
+  pAdjustMethod = "BH",
+  minGSSize = 1,
+  maxGSSize = 500,
+  qvalueCutoff = 0.2,
+  readable = F)
+
+snp <- c("rs1401296", "rs9315050", "rs5498", "rs1524668", "rs147377392",
+         "rs841", "rs909253", "rs7193343", "rs3918232", "rs3760396",
+         "rs2231137", "rs10947803", "rs17222919", "rs386602276", "rs11053646",
+         "rs1805192", "rs139564723", "rs2230806", "rs20417", "rs966221")
+data.frame(dgnv)
+
+
+library(ReactomePA)
+x <- enrichPathway(gene=gene_map_df$ENTREZID, pvalueCutoff = 0.05, minGSSize = 1, readable=TRUE)
+head(x)
+```
+
