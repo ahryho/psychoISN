@@ -43,17 +43,30 @@ mnda_rslt_fn <- paste0(rslt_dir, "mnda/global_network/global_network_mnda_distan
 treatment       <- "dex"
 dex_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
 dex_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
+<<<<<<< HEAD
 dex_loc_df      <- rbind(as.data.frame(dex_cpg_anno_gr)[, c("seqnames", "start", "end")],
                          as.data.frame(dex_snp_anno_gr)[, c("seqnames", "start", "end")])
+=======
+dex_loc_df      <- rbind(as.data.frame(dex_cpg_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")],
+                         as.data.frame(dex_snp_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")])
+>>>>>>> mnda
 
 treatment       <- "veh"
 veh_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
 veh_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
+<<<<<<< HEAD
 veh_loc_df      <- rbind(as.data.frame(veh_cpg_anno_gr)[, c("seqnames", "start", "end")],
                          as.data.frame(veh_snp_anno_gr)[, c("seqnames", "start", "end")])
 
 loc_df <- rbind(dex_loc_df, veh_loc_df) %>% unique() %>% mutate(ID = rownames(loc_df)) %>%
   select(chr = seqnames, start, end, ID)
+=======
+veh_loc_df      <- rbind(as.data.frame(veh_cpg_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")],
+                         as.data.frame(veh_snp_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")])
+
+loc_df <- rbind(dex_loc_df, veh_loc_df) %>% unique() %>% mutate(ID = rownames(loc_df)) %>%
+  select(chr = seqnames, start, end, ID, SYMBOL)
+>>>>>>> mnda
 ```
 
 
@@ -113,6 +126,7 @@ circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
 ## High variable nodes
 
 ```{r}
+<<<<<<< HEAD
 nodes        <- high_var_nodes
 associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique()
 
@@ -133,4 +147,32 @@ circos.genomicDensity(bed[ID %like% "cg"], col = brewer_pallete[1])
 circos.genomicDensity(bed[ID %like% "rs"], col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
 # draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
+=======
+nodes        <- high_var_nodes # 46
+associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique() # 53
+
+bed1 <- left_join(associations[, .(V1, W)], loc_df, by = c("V1" = "ID")) %>% select(chr, start, end, W, ID = V1, SYMBOL)
+bed2 <- left_join(associations[, .(V2, W)], loc_df, by = c("V2" = "ID")) %>% select(chr, start, end, W, ID = V2, SYMBOL)
+bed  <- rbind(bed1, bed2)
+
+col_fun <- colorRamp2(c(-1, 0, 1), c(brewer_pallete[5], brewer_pallete[4], brewer_pallete[3]))
+
+bed1$col <- col_fun(bed1$W)# ifelse(bed1$W > 0, brewer_pallete[3], brewer_pallete[4])
+lgd_links <- Legend(at = c(-1, 0, 1), col_fun = col_fun,
+                    title_position = "topleft", title = "dex-base")
+
+circos.clear()
+circos.par("gap.degree" = 2)
+circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22)) #, plotType = c("labels", "axis"))
+circos.genomicLabels(unique(bed[ID %in% nodes, .(chr, start, end, SYMBOL)]), 
+                     labels.column = 4, side = "inside", 
+                     col = "black", cex = 0.7, connection_height = mm_h(0.005),
+                     track.margin = c(0.005, 0.005), 
+                     padding = c(0, 0, 0, 0))
+# circos.genomicIdeogram()
+circos.genomicDensity(bed[ID %in% nodes][ID %like% "cg"], col = brewer_pallete[1], track.height = 0.1)
+circos.genomicDensity(bed[ID %in% nodes][ID %like% "rs"], col =  brewer_pallete[2], track.height = 0.1)
+circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
+draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
+>>>>>>> mnda
 ```
