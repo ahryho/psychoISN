@@ -119,10 +119,11 @@ ggplot(gene_regions_anno, aes(x = annotation, y = freq, fill = Treatment, color 
 
 # Functional annotation of SNPs
 
-
 ```{r}
-gene_regions_anno <- rbind(as.data.frame(veh_snp_anno_gr)[, c("annotation")] %>% mutate(SNP = names(veh_snp_anno_gr), Treatment = "Baseline"),
-                      as.data.frame(dex_snp_anno_gr)[, c("annotation")] %>% mutate(SNP = names(dex_snp_anno_gr), Treatment = "GR-stimulated")) %>% 
+gene_regions_anno <- rbind(data.frame(veh_snp_anno_gr[, "annotation"], SNP = names(veh_snp_anno_gr), Treatment = "Baseline") %>% 
+                             dplyr::select(SNP, annotation, Treatment),
+                           data.frame(dex_snp_anno_gr[, "annotation"], SNP = names(dex_snp_anno_gr), Treatment = "GR-stimulated") %>% 
+                             dplyr::select(SNP, annotation, Treatment)) %>%
   group_by(Treatment, annotation) %>% 
   tally() %>%
   group_by(Treatment) %>%
