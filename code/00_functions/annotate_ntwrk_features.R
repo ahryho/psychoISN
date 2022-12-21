@@ -32,6 +32,18 @@ annotate_ntwk_snps <- function(net, anno_gr, out_fn = NULL){
   net_features     <- rownames(net)[rownames(net) %like% "rs"]
   anno_net_feat_gr <- anno_gr[names(anno_gr) %in% net_features]
   
+  anno.df <- as.data.frame(anno_net_feat_gr)
+  anno    <- anno.df$annotation
+  
+  anno[grep("exon 1 of", anno)]   <- "1st Exon"
+  anno[grep("Exon \\(", anno)]    <- "Other Exon"
+  anno[grep("intron 1 of", anno)] <- "1st Intron"
+  anno[grep("Intron \\(", anno)]  <- "Other Intron"
+  anno[grep("Downstream", anno)]  <- "Downstream (<=300)"
+  anno[grep("^Distal", anno)]     <- "Distal Intergenic"
+  
+  anno_net_feat_gr@elementMetadata[["annotation"]] <- anno
+  
   if(!is.null(out_fn))
     saveRDS(anno_net_feat_gr, out_fn)
   
