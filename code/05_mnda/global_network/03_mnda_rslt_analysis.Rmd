@@ -13,7 +13,9 @@ library(aggregation)
 
 library(ggplot2)
 library(RColorBrewer)
+
 library(circlize)
+library(ComplexHeatmap)
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
@@ -45,80 +47,113 @@ treatment       <- "dex"
 dex_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
 dex_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
 
-dex_loc_df      <- rbind(as.data.frame(dex_cpg_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")],
-                         as.data.frame(dex_snp_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")])
+dex_loc_df      <- rbind(as.data.frame(dex_cpg_anno_gr)[, c("seqnames", "start", "end", "SYMBOL", "GENENAME", "annotation")],
+                         as.data.frame(dex_snp_anno_gr)[, c("seqnames", "start", "end", "SYMBOL", "GENENAME", "annotation")])
 
 treatment       <- "veh"
 veh_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
 veh_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
 
-veh_loc_df      <- rbind(as.data.frame(veh_cpg_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")],
-                         as.data.frame(veh_snp_anno_gr)[, c("seqnames", "start", "end", "SYMBOL")])
+veh_loc_df      <- rbind(as.data.frame(veh_cpg_anno_gr)[, c("seqnames", "start", "end", "SYMBOL", "GENENAME", "annotation")],
+                         as.data.frame(veh_snp_anno_gr)[, c("seqnames", "start", "end", "SYMBOL", "GENENAME", "annotation")])
 
 loc_df <- rbind(dex_loc_df, veh_loc_df) %>% unique() 
 loc_df <- loc_df %>% mutate(ID = rownames(loc_df)) %>%
-  dplyr::select(chr = seqnames, start, end, ID, SYMBOL)
+  dplyr::select(chr = seqnames, start, end, ID, SYMBOL, GENENAME, annotation)
 ```
 
 
-```{r}
+```{r load-mnda-results, eval = T, include = F}
 graph_data <- fread(input_graph, sep = ";")
 mnda_rslt  <- readRDS(mnda_rslt_fn)
 mnda_dist  <- mnda_rslt$mnda_dist
 
 significant_nodes <- mnda_dist$significant_nodes
+significant_fdrs  <- mnda_dist$p_values[mnda_dist$significant_nodes_index]
+significant_nodes_df <- data.frame(node = significant_nodes, fdr = significant_fdrs)
+
 high_var_nodes    <- mnda_dist$high_var_nodes
 
 graph_to_plot = cbind(graph_data[,1:2], W = (graph_data[, "weight_dex"] - graph_data[, "weight_veh"]))
 colnames(graph_to_plot) <- c("V1", "V2", "W")
 
-G = mnda::as.igraph(graph_to_plot)
-subgraph_plot(G, significant_nodes[1:10])
+# G = mnda::as.igraph(graph_to_plot)
+# subgraph_plot(G, significant_nodes[1:10])
 ```
 
-# Chord plot
+# Circos plots
 
 ## Significant nodes
 
 ```{r}
-# nodes <- high_var_nodes
-nodes <- significant_nodes
-associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique()
-bed1 <- left_join(associations[, .(V1, W)], loc_df, by = c("V1" = "ID")) %>% select(chr, start, end, W, ID = V1)
-bed2 <- left_join(associations[, .(V2, W)], loc_df, by = c("V2" = "ID")) %>% select(chr, start, end, W, ID = V2)
+nodes        <- significant_nodes # 83
+associations <- rbind(graph_data[V1 %in% nodes] %>% dplyr::select(sign_node = V1, asso_node = V2, weight_veh, weight_dex),
+                      graph_data[V2 %in% nodes] %>% dplyr::select(sign_node = V2, asso_node = V1, weight_veh, weight_dex)) %>%
+  unique() 
+
+associations <- left_join(associations, significant_nodes_df, by = c("sign_node" = "node")) %>% 
+  arrange(fdr) %>%
+  mutate(W = weight_dex - weight_veh)
+
+sign_node_anno <- left_join(significant_nodes_df, loc_df, by = c("node" = "ID")) %>% arrange(fdr) %>%
+  dplyr::select(ID = node, CHR = chr, POS = start, GENE_SYMBOL = SYMBOL, REGION = annotation, FDR = fdr) 
+
+print(sign_node_anno, row.names = F)
+```
+
+### Circios plot 
+
+```{r}
+# nodes <- significant_nodes
+# associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique()
+associations_top_n <- associations %>%
+  group_by(sign_node, fdr) %>% 
+  slice(which.min(fdr)) %>% 
+  arrange(fdr) %>% setDT()
+
+bed1 <- left_join(associations_top_n[, .(sign_node, W, fdr)], loc_df, by = c("sign_node" = "ID")) %>% 
+  dplyr::select(chr, start, end, W, fdr, ID = sign_node, SYMBOL)
+bed2 <- left_join(associations_top_n[, .(asso_node, W, fdr)], loc_df, by = c("asso_node" = "ID")) %>% 
+  dplyr::select(chr, start, end, W, fdr, ID = asso_node, SYMBOL)
 bed  <- rbind(bed1, bed2)
 
 color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=140) {
   return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
 }
 
-bed1$col <- ifelse(bed1$W > 0, "purple", "green")
-# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+# bed1$col <- ifelse(bed1$W > 0, "purple", "green")
 # lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1), 0.01), 
 #                             col_fun = color.gradient, 
 #     title_position = "topleft", title = "value")
 
-# cytoband <- read.cytoband(species = "hg19")$df
-# cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
+col_fun <- colorRamp2(c(-1, 0, 1), c(brewer_pallete[5], brewer_pallete[4], brewer_pallete[3]))
+
+bed1$col <- col_fun(bed1$W)# ifelse(bed1$W > 0, brewer_pallete[3], brewer_pallete[4])
+lgd_links <- Legend(at = c(-1, 0, 1), col_fun = col_fun,
+                    title_position = "topleft", title = "dex-base")
+
 circos.clear()
-# circos.initialize()
-# circos.par("gap.degree" = rep(c(1, 20), 1))
-# circos.initializeWithIdeogram(cytoband, plotType = NULL)
-# circos.genomicIdeogram(cytoband)
-# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
-circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
-# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
-circos.genomicDensity(bed[ID %like% "cg"], col = brewer_pallete[1])
-circos.genomicDensity(bed[ID %like% "rs"], col =  brewer_pallete[2])
+circos.par("gap.degree" = 2)
+circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22)) #, plotType = c("labels", "axis"))
+circos.genomicLabels(unique(bed[ID %in% nodes, .(chr, start, end, SYMBOL)]), 
+                     labels.column = 4, side = "inside", 
+                     col = "black", cex = 0.7, connection_height = mm_h(0.005),
+                     track.margin = c(0.005, 0.005), 
+                     padding = c(0, 0, 0, 0))
+# circos.genomicIdeogram()
+circos.genomicDensity(bed[ID %in% nodes][ID %like% "cg"], col = brewer_pallete[1], track.height = 0.1)
+circos.genomicDensity(bed[ID %in% nodes][ID %like% "rs"], col =  brewer_pallete[2], track.height = 0.1)
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
-# draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
+draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom"))
 ```
 
 ## High variable nodes
 
+### Circos plot
+
 ```{r}
-nodes        <- high_var_nodes # 46
-associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique() # 53
+nodes        <- high_var_nodes
+associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique()
 
 bed1 <- left_join(associations[, .(V1, W)], loc_df, by = c("V1" = "ID")) %>% dplyr::select(chr, start, end, W, ID = V1, SYMBOL)
 bed2 <- left_join(associations[, .(V2, W)], loc_df, by = c("V2" = "ID")) %>% dplyr::select(chr, start, end, W, ID = V2, SYMBOL)
