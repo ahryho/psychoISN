@@ -60,6 +60,8 @@ mnda_dist <- lapply(mnda_rslt_fn_lst, function(fn){
 }) %>% bind_rows()
 ```
 
+# Clustering of individuals
+
 ```{r}
 dist_mtrx   <- dist(scale(mnda_dist[, -1]))
 hclust_avg  <- hclust(dist_mtrx, method = "ward.D2")
@@ -151,8 +153,39 @@ ggplot(dist_isns_df, aes(x = cluster, y = BMI_D1)) +
        y = "BMI") 
 ```
 
+# Clustering of variants
 
+```{r}
+features_dist_mtrx   <- dist(scale(t(mnda_dist[, -1])))
+hclust_avg  <- hclust(features_dist_mtrx, method = "ward.D2")
+```
 
+```{r}
+nr_cluster  <- 3
+# rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
+cut_avg     <- cutree(hclust_avg, k = nr_cluster)
+
+avg_dend_obj <- as.dendrogram(hclust_avg)
+avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
+plot(avg_col_dend)
+```
+
+```{r}
+dist_features_df  <- data.frame(t(mnda_dist[, -1]), cluster = as.factor(cut_avg))
+count(dist_features_df, cluster)
+```
+
+## Feature plot
+
+```{r}
+fviz_cluster(list(data = dist_features_df[, 1:51], 
+                  cluster = dist_features_df$cluster),
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  # scale_shape_manual(values = pheno$Status) +
+  # geom_point(aes(shape = dist_isns_df$Status), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+```
 
 
 
