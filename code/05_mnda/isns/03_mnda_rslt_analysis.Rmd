@@ -55,7 +55,8 @@ mnda_dist <- lapply(mnda_rslt_fn_lst, function(fn){
   sample_id  <- gsub(".*_distances_(.+)_chr(.+)", "\\1", fn) 
   mnda_rslt  <- readRDS(fn)
   mnda_dist  <- mnda_rslt$mnda_dist
-  
+  # idx        <- mnda_dist$significant_nodes_index
+  # rank_sum_dist  <- data.frame(Sample_ID = sample_id, t(mnda_dist$rank_sum_dist[idx]))
   rank_sum_dist  <- data.frame(Sample_ID = sample_id, t(mnda_dist$rank_sum_dist))
 }) %>% bind_rows()
 ```
@@ -68,7 +69,7 @@ hclust_avg  <- hclust(dist_mtrx, method = "ward.D2")
 ```
 
 ```{r}
-nr_cluster  <- 3
+nr_cluster  <- 5
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 cut_avg     <- cutree(hclust_avg, k = nr_cluster)
 
@@ -86,10 +87,10 @@ dist_isns_df <- left_join(dist_isns_df, pheno[, .(DNA_ID, Status, Age, mAge_Hova
          Sex = ifelse(Sex == 1, "Male", "Female"))
 ```
 
-## Individual plot
+## Individual plot, MDD
 
 ```{r}
-fviz_cluster(list(data = dist_isns_df[, 1:180], 
+fviz_cluster(list(data = dist_isns_df[, 1:(ncol(mnda_dist)-1)], 
                   cluster = dist_isns_df$cluster),
              geom = "point",
              shape = 10, pointsize = 1) + 
@@ -98,7 +99,22 @@ fviz_cluster(list(data = dist_isns_df[, 1:180],
   theme_minimal() + theme(legend.title=element_blank())
 ```
 
+
 ## Sex distribution
+
+### Individual plot
+
+```{r}
+fviz_cluster(list(data = dist_isns_df[, 1:(ncol(mnda_dist)-1)], 
+                  cluster = dist_isns_df$cluster),
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  # scale_shape_manual(values = pheno$Status) +
+  geom_point(aes(shape = dist_isns_df$Sex), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+```
+
+### Distribution
 
 ```{r}
 sex_cnt <- dist_isns_df %>% select(cluster, Sex) %>%
@@ -153,18 +169,46 @@ ggplot(dist_isns_df, aes(x = cluster, y = BMI_D1)) +
        y = "BMI") 
 ```
 
+## K-means clustering
+
+```{r}
+kclust <- kmeans(scale(mnda_dist[, -1]), centers = 4, nstart = 5)
+```
+
+### Feature plot
+
+```{r}
+fviz_cluster(kclust, data = mnda_dist[, -1],
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  geom_point(aes(shape = dist_isns_df$Status), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+```
+
 # Clustering of variants
 
 ```{r}
-features_dist_mtrx   <- dist(scale(t(mnda_dist[, -1])))
-hclust_avg  <- hclust(features_dist_mtrx, method = "ward.D2")
+features_dist_mtrx   <- get_dist(scale(t(mnda_dist[, -1])))
 ```
 
+## Heatmap of distances between features
+
 ```{r}
-nr_cluster  <- 3
+fviz_dist(features_dist_mtrx, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+```
+
+## Hierarchical clustering
+
+```{r}
+hclust_avg  <- hclust(features_dist_mtrx, method = "ward.D2")
+nr_cluster  <- 6
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 cut_avg     <- cutree(hclust_avg, k = nr_cluster)
+```
 
+### Dendogram
+
+```{r}
 avg_dend_obj <- as.dendrogram(hclust_avg)
 avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
 plot(avg_col_dend)
@@ -175,10 +219,10 @@ dist_features_df  <- data.frame(t(mnda_dist[, -1]), cluster = as.factor(cut_avg)
 count(dist_features_df, cluster)
 ```
 
-## Feature plot
+### Feature plot
 
 ```{r}
-fviz_cluster(list(data = dist_features_df[, 1:51], 
+fviz_cluster(list(data = dist_features_df[, 1:196 ], 
                   cluster = dist_features_df$cluster),
              geom = "point",
              shape = 10, pointsize = 1) + 
@@ -187,6 +231,22 @@ fviz_cluster(list(data = dist_features_df[, 1:51],
   theme_minimal() + theme(legend.title=element_blank())
 ```
 
+## K-means clustering
+
+```{r}
+kclust <- kmeans(t(mnda_dist[, -1]), centers = 6, nstart = 25)
+```
+
+### Feature plot
+
+```{r}
+fviz_cluster(kclust, data = t(mnda_dist[, -1]),
+             geom = "point",
+             shape = 10, pointsize = 1) + 
+  # scale_shape_manual(values = pheno$Status) +
+  # geom_point(aes(shape = dist_isns_df$Status), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+```
 
 
 ```{r load-anno, include = F}

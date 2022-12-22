@@ -23,7 +23,7 @@ isns_fn_lst <- list.files(input_dir, full.names = T)
 
 ## Load data
 
-lapply(isns_fn_lst, function(input_graph_fn){
+lapply(isns_fn_lst[-c(1:2)], function(input_graph_fn){
   
   sample_id  <- gsub(".*_input_(.+).csv", "\\1", input_graph_fn) 
   out_fn     <- paste0(out_dir, "isn_mnda_distances_", sample_id, ".rds")
@@ -39,7 +39,7 @@ lapply(isns_fn_lst, function(input_graph_fn){
                                                 n.steps = 10,
                                                 embedding.size = 10, 
                                                 batch.size = 32,
-                                                epochs = 50,
+                                                epochs = 10,
                                                 random.walk = T, null.perm = TRUE)
   
   toc()
