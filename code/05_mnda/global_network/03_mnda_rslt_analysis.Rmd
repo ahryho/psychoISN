@@ -66,7 +66,9 @@ loc_df <- loc_df %>% mutate(ID = rownames(loc_df)) %>%
 ```{r load-mnda-results, eval = T, include = F}
 graph_data <- fread(input_graph, sep = ";")
 mnda_rslt  <- readRDS(mnda_rslt_fn)
-mnda_dist  <- mnda_rslt$mnda_dist
+
+embedding_space <- mnda_rslt$embedding_space 
+mnda_dist       <- mnda_rslt$mnda_dist
 
 significant_nodes <- mnda_dist$significant_nodes
 significant_fdrs  <- mnda_dist$p_values[mnda_dist$significant_nodes_index]
