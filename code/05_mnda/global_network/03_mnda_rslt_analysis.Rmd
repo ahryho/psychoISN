@@ -101,6 +101,8 @@ sign_node_anno <- left_join(significant_nodes_df, loc_df, by = c("node" = "ID"))
   dplyr::select(ID = node, CHR = chr, POS = start, GENE_SYMBOL = SYMBOL, REGION = annotation, FDR = fdr) 
 
 print(sign_node_anno, row.names = F)
+
+print(data.frame(X = sign_node_anno[sign_node_anno$ID %like% "rs", "GENE_SYMBOL"] %>% unique), row.names = F, quote = F)
 ```
 
 ### Circios plot 
