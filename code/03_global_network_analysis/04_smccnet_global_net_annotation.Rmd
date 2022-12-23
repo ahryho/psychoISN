@@ -160,49 +160,104 @@ ggplot(gene_regions_anno, aes(x = annotation, y = freq, fill = Treatment, color 
   scale_fill_manual(values = alpha(cbPalette, 0.25))
 ```
 
-# Enrichment analysis of SNPs
+# ChromHMM states
+
+## CpGs
 
 ```{r}
-library(DOSE)
-library(clusterProfiler)
-library(org.Hs.eg.db)
+treatment    <- "dex"
+dex_cpg_anno <- fread(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_chromhmm_annotated.rds"))
 
-dex_snp_gene_symbol_lst <- dex_snp_anno_gr$SYMBOL %>% unique()
-
-gene_map_df <- bitr(dex_snp_gene_symbol_lst, fromType = "SYMBOL",
-        toType = c("ENSEMBL", "ENTREZID"),
-        OrgDb = org.Hs.eg.db)
-
-x <- enrichDO(gene          = unique(gene_map_df$ENTREZID),
-              ont           = "DO",
-              pvalueCutoff  = 1,
-              pAdjustMethod = "BH",
-              minGSSize     = 1,
-              maxGSSize     = 500,
-              qvalueCutoff  = 1,
-              readable      = FALSE)
-
-x <-  enrichDGN(unique(gene_map_df$ENTREZID))
-
-snp <- names(veh_snp_anno_gr)
-
-dgnv <- enrichDGNv(snp,
-                     pvalueCutoff = 0.05,
-  pAdjustMethod = "BH",
-  minGSSize = 1,
-  maxGSSize = 500,
-  qvalueCutoff = 0.2,
-  readable = F)
-
-snp <- c("rs1401296", "rs9315050", "rs5498", "rs1524668", "rs147377392",
-         "rs841", "rs909253", "rs7193343", "rs3918232", "rs3760396",
-         "rs2231137", "rs10947803", "rs17222919", "rs386602276", "rs11053646",
-         "rs1805192", "rs139564723", "rs2230806", "rs20417", "rs966221")
-data.frame(dgnv)
-
-
-library(ReactomePA)
-x <- enrichPathway(gene=gene_map_df$ENTREZID, pvalueCutoff = 0.05, minGSSize = 1, readable=TRUE)
-head(x)
+treatment    <- "veh"
+veh_cpg_anno <- fread(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_chromhmm_annotated.rds"))
 ```
+
+
+```{r}
+chromhmm_anno <- rbind(unique(veh_cpg_anno[, c("ID", "annot.type")]) %>% mutate(Treatment = "Baseline"),
+                       unique(dex_cpg_anno[, c("ID", "annot.type")]) %>% mutate(Treatment = "GR-stimulated")) %>% 
+  group_by(Treatment, annot.type) %>% 
+  tally() %>%
+  group_by(Treatment) %>%
+  mutate(freq = n/sum(n)) 
+
+chromhmm_anno$annot.type <- factor(chromhmm_anno$annot.type, 
+                                          levels = c("1_TssA", "2_TssAFlnk", "3_TxFlnk", "4_Tx", "5_TxWk", "6_EnhG", "7_Enh",
+                                                     "8_ZNF/Rpts", "9_Het", "10_TssBiv", "11_BivFlnk", "12_EnhBiv", "13_ReprPC",
+                                                     "14_ReprPCWk", "15_Quies"))
+```
+
+```{r out.width = "90%", fig.cap = "Distribution of locations of CpGs in chrom states", include = T, eval = T}
+plt_size <- 14
+
+ggplot(chromhmm_anno, aes(x = annot.type, y = freq, fill = Treatment, color = Treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = 3, color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+       y = "", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = "bottom",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt_size),
+        axis.title = element_text(size = plt_size),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = alpha(cbPalette, 0.5)) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
+## SNPs
+
+```{r}
+treatment    <- "dex"
+dex_snp_anno <- fread(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_chromhmm_annotated.rds"))
+
+treatment    <- "veh"
+veh_snp_anno <- fread(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_chromhmm_annotated.rds"))
+```
+
+
+```{r}
+chromhmm_anno <- rbind(unique(veh_snp_anno[, c("ID", "annot.type")]) %>% mutate(Treatment = "Baseline"),
+                       unique(dex_snp_anno[, c("ID", "annot.type")]) %>% mutate(Treatment = "GR-stimulated")) %>% 
+  group_by(Treatment, annot.type) %>% 
+  tally() %>%
+  group_by(Treatment) %>%
+  mutate(freq = n/sum(n)) 
+
+chromhmm_anno$annot.type <- factor(chromhmm_anno$annot.type, 
+                                          levels = c("1_TssA", "2_TssAFlnk", "3_TxFlnk", "4_Tx", "5_TxWk", "6_EnhG", "7_Enh",
+                                                     "8_ZNF/Rpts", "9_Het", "10_TssBiv", "11_BivFlnk", "12_EnhBiv", "13_ReprPC",
+                                                     "14_ReprPCWk", "15_Quies"))
+```
+
+```{r out.width = "90%", fig.cap = "Distribution of locations of SNPs in chrom states", include = T, eval = T}
+plt_size <- 14
+
+ggplot(chromhmm_anno, aes(x = annot.type, y = freq, fill = Treatment, color = Treatment)) + 
+  geom_bar(stat = "identity", position = position_dodge()) +
+  geom_text(aes(label = scales::percent(freq, accuracy = 0.1)),
+            vjust = -.5,  position = position_dodge(1), size = 3, color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(x = "",
+       y = "", 
+       title = "") +
+  theme(legend.title = element_blank(), 
+        legend.position = "bottom",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt_size),
+        axis.title = element_text(size = plt_size),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, colour = "black"),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_color_manual(values = alpha(cbPalette, 0.5)) +
+  scale_fill_manual(values = alpha(cbPalette, 0.25))
+```
+
 
