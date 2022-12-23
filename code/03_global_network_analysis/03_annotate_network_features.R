@@ -5,6 +5,7 @@ library(RColorBrewer)
 
 library(annotatr)
 
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/annotate_ntwrk_features.R")
 
 dir_pre  <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
@@ -41,6 +42,10 @@ dex_cpg_chromhmm_anno <- annotate_chromHMM(dex_cpg_anno, chromhmm_blood_anno, ou
 out_fn         <- paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds")
 dex_snp_anno   <- annotate_ntwk_snps(net, snp_chipseeker_anno, out_fn)
 
+fwrite(list(unique(dex_snp_anno$SYMBOL)), 
+       paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snp_gene_symbol_list.csv"),
+       sep = ";", quote = F, row.names = F, col.names = F)
+
 ## ChromHMM annotation
 
 out_fn                <- paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_chromhmm_annotated.rds")
@@ -71,3 +76,13 @@ veh_snp_anno   <- annotate_ntwk_snps(net, snp_chipseeker_anno, out_fn)
 out_fn                <- paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_chromhmm_annotated.rds")
 veh_snp_chromhmm_anno <- annotate_chromHMM(veh_snp_anno, chromhmm_blood_anno, out_fn)
 
+
+## Annotate ad save bkgr snps
+
+snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
+snps_mtrx   <- LoadGenotype(snps_gds_fn, is_ld = F)
+bkgr_snps   <- snp_chipseeker_anno[names(snp_chipseeker_anno) %in% colnames(snps_mtrx),]
+
+fwrite(list(unique(bkgr_snps$SYMBOL)), 
+       paste0(rslt_dir, "/smccnet_bkgr_snp_gene_symbol_list.csv"),
+       sep = ";", quote = F, row.names = F, col.names = F)
