@@ -19,8 +19,9 @@ library(factoextra)
 library(circlize)
 library(ComplexHeatmap)
 
-source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
-source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
+# source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+
+source("~/bio/code/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 
 cbPalette <- c("grey", "#0072B2")
 brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
@@ -55,9 +56,10 @@ mnda_dist <- lapply(mnda_rslt_fn_lst, function(fn){
   sample_id  <- gsub(".*_distances_(.+)_chr(.+)", "\\1", fn) 
   mnda_rslt  <- readRDS(fn)
   mnda_dist  <- mnda_rslt$mnda_dist
-  # idx        <- mnda_dist$significant_nodes_index
-  # rank_sum_dist  <- data.frame(Sample_ID = sample_id, t(mnda_dist$rank_sum_dist[idx]))
-  rank_sum_dist  <- data.frame(Sample_ID = sample_id, t(mnda_dist$rank_sum_dist))
+  idx        <- mnda_dist$significant_nodes_index
+  
+  rank_sum_dist  <- data.frame(Sample_ID = sample_id, t(mnda_dist$rank_sum_dist[idx]))
+  # rank_sum_dist  <- data.frame(Sample_ID = sample_id, t(mnda_dist$rank_sum_dist))
 }) %>% bind_rows()
 ```
 
@@ -248,9 +250,12 @@ fviz_cluster(kclust, data = t(mnda_dist[, -1]),
   theme_minimal() + theme(legend.title=element_blank())
 ```
 
+# Example of ISN 
 
 ```{r load-anno, include = F}
 treatment       <- "dex"
+
+rslt_dir        <- "~/bio/code/kul/dex-stim-human-array-isns/results/data/5_fold_cv/all/"
 dex_cpg_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_cpgs_annotated.rds"))
 dex_snp_anno_gr <- readRDS(paste0(rslt_dir, treatment, "/smccnet_", treatment, "_snps_annotated.rds"))
 
@@ -271,8 +276,9 @@ loc_df <- loc_df %>% mutate(ID = rownames(loc_df)) %>%
 
 
 ```{r load-mnda-results, eval = T, include = F}
-graph_data <- fread(input_graph, sep = ";")
-mnda_rslt  <- readRDS(mnda_rslt_fn)
+isns_dir   <- "~/bio/code/kul/dex-stim-human-array-isns/results/data/5_fold_cv/all/mnda/isns/input/"
+graph_data <- fread(list.files(isns_dir, full.names = T)[[1]], sep = ";")
+mnda_rslt  <- readRDS(mnda_rslt_fn_lst[[1]])
 mnda_dist  <- mnda_rslt$mnda_dist
 
 significant_nodes <- mnda_dist$significant_nodes
@@ -293,7 +299,7 @@ colnames(graph_to_plot) <- c("V1", "V2", "W")
 ## Significant nodes
 
 ```{r}
-nodes        <- significant_nodes # 83
+nodes        <- significant_nodes # 44
 associations <- rbind(graph_data[V1 %in% nodes] %>% dplyr::select(sign_node = V1, asso_node = V2, weight_veh, weight_dex),
                       graph_data[V2 %in% nodes] %>% dplyr::select(sign_node = V2, asso_node = V1, weight_veh, weight_dex)) %>%
   unique() 
@@ -315,7 +321,7 @@ print(sign_node_anno, row.names = F)
 # associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique()
 associations_top_n <- associations %>%
   group_by(sign_node, fdr) %>% 
-  slice(which.min(fdr)) %>% 
+  dplyr::slice(which.min(fdr)) %>% 
   arrange(fdr) %>% setDT()
 
 bed1 <- left_join(associations_top_n[, .(sign_node, W, fdr)], loc_df, by = c("sign_node" = "ID")) %>% 
@@ -359,7 +365,7 @@ draw(lgd_links, x = unit(10, "mm"), y = unit(10, "mm"), just = c("left", "bottom
 ### Circos plot
 
 ```{r}
-nodes        <- high_var_nodes
+nodes        <- high_var_nodes # 18
 associations <- rbind(graph_to_plot[V1 %in% nodes], graph_to_plot[V2 %in% nodes]) %>% unique()
 
 bed1 <- left_join(associations[, .(V1, W)], loc_df, by = c("V1" = "ID")) %>% dplyr::select(chr, start, end, W, ID = V1, SYMBOL)
