@@ -4,13 +4,22 @@ sub-title: Explore GDS formats
 output:
   html_document:
     df_print: paged
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r}
+library(dplyr)
+library(data.table)
+
 library(gdsfmt)
 library(SNPRelate)
 
 library(arrow)
+
+library(ggplot2)
+library(RColorBrewer)
+brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 ```
 
 ```{r}
@@ -61,7 +70,7 @@ dnam_mtrx[1:10, 1:5]
 ```
 # 2. Genotype
 
-# 3. Explore transformed object
+## 2.1. Explore transformed object
 
 ```{r load-snp-gds}
 snps_gds <- snpgdsOpen("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps/gds/dex_geno_imputed.gds")
@@ -78,24 +87,24 @@ colnames(snp_mtrx)   <- geno_obj$snp.id
 rownames(snp_mtrx)   <- geno_obj$sample.id
 ```
 
-## Check dimensionality of SNP mtrx
+## 2.2. Check dimensionality of SNP mtrx
 
 ```{r}
 dim(snp_mtrx)
 ```
 
-## Check summary of the first 5 SNPs
+## 2.3. Check summary of the first 5 SNPs
 
 ```{r}
 summary(snp_mtrx[, 1:5])
 ```
 
-## 5 SNP for the first 10 samples
+## 2.4. SNP for the first 10 samples
 
 ```{r}
 snp_mtrx[1:10, 1:5]
 ```
-## Compare SNP mtrx with the matrix that was used for eQTL/meQTL analysis: transformed using plink
+## 2.5. Compare SNP mtrx with the matrix that was used for eQTL/meQTL analysis: transformed using plink
 
 ### Load SNP matrix that was used for eQTL/meQTL analysis
 
@@ -155,7 +164,7 @@ m <- fread("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/
 m <- m[, -1]
 ```
 
-# 4. Explore GDS SNP file obtained from Oxford gen format
+# 3. Explore GDS SNP file obtained from Oxford gen format
 
 ```{r load-snp-gds}
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input")
@@ -190,3 +199,55 @@ table(t(snp_mpip[snp_mpip$SNP == rs, -1]))
 print(paste0("GDS matrix: table for ", rs))
 table(snp_mtrx[, rs])
 ```
+
+# 4. CHeck the SNP distribution across chromosomes
+
+```{r load-snp-coordintaes, include = F}
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
+
+snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
+snp_loc     <- LoadGenotypeCoordinates(snps_gds_fn) %>% data.frame() %>% setDT()
+```
+
+```{r}
+snp_loc$chr <- as.numeric(snp_loc$chr)
+```
+
+```{r}
+net_loc_count <- snp_loc %>%
+  group_by(chr) %>%
+  tally() %>%
+  mutate(freq = n / sum(n)) %>% 
+  mutate(chr = factor(chr, levels = 1:22)) %>% setDT()
+```
+
+```{r}
+plt.size <- 14
+ggplot(net_loc_count, aes(x = chr, y = freq, fill = chr)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(data = net_loc_count[freq > 0.02], 
+            aes(label = scales::percent(freq, accuracy = 0.1), y = freq), 
+            stat = "identity", position = position_stack(vjust = 0.95), size =  plt.size / 3,
+            color = "black") +
+    geom_text(data = net_loc_count, 
+            aes(label = n, y = freq), 
+            stat = "identity", position = position_stack(vjust = 1.05), size = plt.size / 3,
+            color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "",
+       x = "Chromosomes",
+       y = "SNP frequency") +
+  theme(legend.title = element_blank(), 
+        legend.position = "none",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size),
+        axis.title = element_text(size = plt.size, colour = "black"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, colour = "black", size = plt.size),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_fill_manual(values = alpha(rep(brewer_pallete, 3), 0.5)) +
+  scale_color_manual(values = alpha(rep(brewer_pallete, 3), 0.75))
+```
+
+
