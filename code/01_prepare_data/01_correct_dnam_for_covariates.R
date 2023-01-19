@@ -47,7 +47,7 @@ registerDoParallel(cl)
 
 res <- foreach(feature = 1:nrow(mtrx), .combine = rbind) %dopar% { 
   lm.model <- lm(mtrx[feature, ] ~ ., data = cov_df[, -1])
-  predict(lm.model)
+  residuals(lm.model)
 }
 
 stopImplicitCluster()
