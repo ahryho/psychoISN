@@ -13,7 +13,7 @@ setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_pkgs.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 
-pkgs_list <- c("data.table", "gdsfmt", "arrow")
+pkgs_list <- c("data.table", "gdsfmt", "arrow", "dplyr")
 
 LoadPackages(pkgs_list)
 
@@ -25,16 +25,31 @@ LoadPackages(pkgs_list)
 
 dnam_mtrx   <- LoadMethyl(in_gds_fn, is_mad = F)
 
-mad_val_fn  <- paste0("mad_filtered/mad_score_methyl_beta.csv") 
+mad_val_fn  <- paste0("mad_filtered/mad_score_methyl_beta_", treatment, ".csv")
+
+if (!file.exists(mad_val_fn)) {
+    mad    <- apply(dnam_mtrx[, -1], 1, function(x) mad(x, constant = 1))
+    mad_df <- data.frame(cbind(CpG_ID = dnam_mtrx$CpG_ID,
+                               MAD = as.numeric(as.character(mad))))
+    mad_df[, "treatment"] <- treatment
+
+    fwrite(mad_df,
+           mad_val_fn,
+           quote = FALSE, row.names = FALSE, sep = ";")
+}
+
 mad_val_df  <- fread(mad_val_fn)
 
-# 3. Subset mad values based on threshold: take the intersection of baseline and dex CpGs 
-# The CpGs should be the same for two time points
+# 3. Subset mad values based on threshold
 
-mad_val_thr_veh  <- mad_val_df[treatment == "veh"][perc >= (mad_thr)][, CpG_ID]
-mad_val_thr_dex  <- mad_val_df[treatment == "dex"][perc >= (mad_thr)][, CpG_ID]
+# Take the intersection of baseline and dex CpGs 
+# The CpGs should be the same for two time points (veriosn before 06.02.2023)
+# mad_val_thr_veh  <- mad_val_df[treatment == "veh"][perc >= (mad_thr)][, CpG_ID]
+# mad_val_thr_dex  <- mad_val_df[treatment == "dex"][perc >= (mad_thr)][, CpG_ID]
+# mad_val_thr_cpgs <- intersect(mad_val_thr_veh, mad_val_thr_dex)
 
-mad_val_thr_cpgs <- intersect(mad_val_thr_veh, mad_val_thr_dex)
+# Version 06.02.2023
+mad_val_thr_cpgs <- mad_val_df[treatment == treatment][perc >= (mad_thr)][, CpG_ID]
 
 # 4. Subset
 
