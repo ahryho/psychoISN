@@ -17,13 +17,13 @@ library(doParallel)
 # 
 # mtrx_fn     <- paste0(mtrx_fn, treatment, ".csv")
 
-treatment   <- "veh"
+treatment   <- "dex"
 
 mtrx_fn     <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/integrative/matrixEQTL/methyl_beta_mtrx_", treatment, ".csv")
 pheno_fn    <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/data/pheno/pheno_full_for_kimono.csv"
 out_mtrx_fn <- "/binder/mgp/workspace/2020_DexStim_Array_Human/isn/input/dnam/methyl_beta_mtrx_corrected_for_cov"
 
-mtrx    <- fread(mtrx_fn) 
+mtrx    <- fread(mtrx_fn)
 cpg_ids <- mtrx$CpG_ID
 mtrx    <- mtrx[, -1]
 
