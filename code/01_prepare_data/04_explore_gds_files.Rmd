@@ -200,7 +200,9 @@ print(paste0("GDS matrix: table for ", rs))
 table(snp_mtrx[, rs])
 ```
 
-# 4. CHeck the SNP distribution across chromosomes
+# 4. Variants distribution across chromosomes
+
+## 4.1. SNPs
 
 ```{r load-snp-coordintaes, include = F}
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
@@ -249,5 +251,58 @@ ggplot(net_loc_count, aes(x = chr, y = freq, fill = chr)) +
   scale_fill_manual(values = alpha(rep(brewer_pallete, 3), 0.5)) +
   scale_color_manual(values = alpha(rep(brewer_pallete, 3), 0.75))
 ```
+
+## 4.2. CpGs
+
+```{r load-cpg-coordintaes, include = F}
+setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
+
+treatment   <- "veh"
+dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
+cpg_loc <- LoadMethylCoordinates(dnam_gds_fn) %>% data.frame() %>% setDT()
+```
+
+```{r}
+cpg_loc$chr <- as.numeric(cpg_loc$chr)
+```
+
+```{r}
+net_loc_count <- cpg_loc %>%
+  group_by(chr) %>%
+  tally() %>%
+  mutate(freq = n / sum(n)) %>% 
+  mutate(chr = factor(chr, levels = 1:22)) %>% setDT()
+```
+
+```{r}
+plt.size <- 14
+ggplot(net_loc_count, aes(x = chr, y = freq, fill = chr)) + 
+  geom_bar(stat = "identity", position = "stack") +
+  geom_text(data = net_loc_count[freq > 0.02], 
+            aes(label = scales::percent(freq, accuracy = 0.1), y = freq), 
+            stat = "identity", position = position_stack(vjust = 0.95), size =  plt.size / 3,
+            color = "black") +
+    geom_text(data = net_loc_count, 
+            aes(label = n, y = freq), 
+            stat = "identity", position = position_stack(vjust = 1.05), size = plt.size / 3,
+            color = "black") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "",
+       x = "Chromosomes",
+       y = "CpG frequency") +
+  theme(legend.title = element_blank(), 
+        legend.position = "none",
+        panel.grid.major = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(size = plt.size),
+        axis.title = element_text(size = plt.size, colour = "black"),
+        axis.text.x = element_text(angle = 0, hjust = 0.5, colour = "black", size = plt.size),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  scale_fill_manual(values = alpha(rep(brewer_pallete, 3), 0.5)) +
+  scale_color_manual(values = alpha(rep(brewer_pallete, 3), 0.75))
+```
+
+
 
 
