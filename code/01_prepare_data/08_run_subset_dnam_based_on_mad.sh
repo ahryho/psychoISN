@@ -3,7 +3,7 @@
 cd /binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam
 
 treatment="dex"
-mad_thr=75
+mad_thr=80
 in_gds_fn="gds/methyl_beta_mtrx_corrected_for_cov_"$treatment".gds"
 out_gds_fn="mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad"$mad_thr"_filtered_"$treatment".gds"
 out_gds_fn_prefix="mad_filtered/gds/"
