@@ -1,4 +1,4 @@
-library(arrow)
+library(data.table)
 library(gdsfmt)
 
 setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
@@ -10,7 +10,7 @@ treatment   <- "dex"
 mtrx_fn_prefix <- "input/dnam/methyl_beta_mtrx_corrected_for_cov"
 mtrx_fn        <-  paste0(mtrx_fn_prefix, "_", treatment, ".csv")
 
-mtrx <- read_delim_arrow(mtrx_fn,  delim = ";")
+mtrx <- fread(mtrx_fn)
 
 # 2. Create a GDS object
 
@@ -30,7 +30,7 @@ closefn.gds(gds_file)
 # 3. Add chrom and pos into gds file
 
 cpg_loc_fn <- "input/dnam/cpg_locations.csv"
-cpg_loc    <- read_delim_arrow(cpg_loc_fn, delim = ";")
+cpg_loc    <- fread(cpg_loc_fn)
 
 gds_file   <- openfn.gds(gds_fn, readonly = F)
 cpg_ids    <- read.gdsn(index.gdsn(gds_file, "cpg_id"))
