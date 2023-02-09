@@ -78,8 +78,8 @@ subsample_nr <- 100
 
 total_pred_grid <- fread(paste0(cv_dir, "/cv_prediction_grid_", cv_k, "_fold.csv"))
 min_penalty     <- total_pred_grid[pred_error == min(pred_error)]
-l1 <- min_penalty$l1[1]
-l2 <- min_penalty$l2[1]
+l1 <- 0.05 # min_penalty$l1[1]
+l2 <- 0.04 # min_penalty$l2[1]
 
 print(paste0("Optimal penalty pair (lambda 1, lambda 2): (", l1, ", ", l2, ")"))
 
