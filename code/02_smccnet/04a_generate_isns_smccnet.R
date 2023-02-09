@@ -22,10 +22,10 @@ dnam_gds_fn <- as.character(args[4])
 snps_gds_fn <- as.character(args[5])
 
 pheno_trait <- c("Status")
-# treatment   <- "veh"
+# treatment   <- "dex"
 # chr         <- "all"
-# cv_dir      <- paste0("results/5_fold_cv/all/veh/")
-# dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_veh.gds")
+# cv_dir      <- paste0("results/5_fold_cv/all/", treatment)
+# dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
 # snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
 
 dnam_mtrx   <- LoadMethyl(dnam_gds_fn, is_mad = F)
