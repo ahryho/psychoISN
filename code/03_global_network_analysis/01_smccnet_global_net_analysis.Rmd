@@ -8,6 +8,8 @@ library(dplyr)
 library(data.table)
 library(gdsfmt)
 library(RColorBrewer)
+library(ComplexHeatmap)
+library(eulerr)
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
@@ -48,9 +50,14 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_
 
 ```{r}
 dex_features <- rownames(dex_global_net) # 5'388
+length(dex_features)
+
 veh_features <- rownames(veh_global_net) # 4'519
+length(veh_features)
 
 olap <- intersect(dex_features, veh_features) # 758
+length(olap)
+
 olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 566
 olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 192
 ```
@@ -87,7 +94,11 @@ setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
 
 treatment   <- "veh"
 dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
-cpg_loc <- LoadMethylCoordinates(dnam_gds_fn) %>% data.frame() %>% setDT()
+cpg_veh_loc <- LoadMethylCoordinates(dnam_gds_fn) %>% data.frame() %>% setDT()
+
+treatment   <- "dex"
+dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
+cpg_dex_loc <- LoadMethylCoordinates(dnam_gds_fn) %>% data.frame() %>% setDT()
 ```
 
 ```{r load-snp-coordintaes, include = F}
@@ -98,14 +109,14 @@ snp_loc     <- LoadGenotypeCoordinates(snps_gds_fn) %>% data.frame() %>% setDT()
 ```
 
 ```{r create-tbl-for-plt, include = F}
-dex_net_cpg_loc <- cpg_loc[CpG_ID %in% colnames(dex_global_net)] %>% 
+dex_net_cpg_loc <- cpg_dex_loc[CpG_ID %in% dex_features] %>% 
   mutate(ID = CpG_ID, Type = "CpG", treatment = "GR-stimulated") %>% dplyr::select(-c(CpG_ID))
-dex_net_snp_loc <- snp_loc[SNP %in% colnames(dex_global_net)] %>% 
+dex_net_snp_loc <- snp_loc[SNP %in% dex_features] %>% 
   mutate(ID = SNP, Type = "SNP", treatment = "GR-stimulated") %>% dplyr::select(-SNP)
 
-veh_net_cpg_loc <- cpg_loc[CpG_ID %in% colnames(veh_global_net)] %>% 
+veh_net_cpg_loc <- cpg_veh_loc[CpG_ID %in% veh_features] %>% 
   mutate(ID = CpG_ID, Type = "CpG", treatment = "Baseline") %>% dplyr::select(-c(CpG_ID))
-veh_net_snp_loc <- snp_loc[SNP %in% colnames(veh_global_net)] %>% 
+veh_net_snp_loc <- snp_loc[SNP %in% veh_features] %>% 
   mutate(ID = SNP, Type = "SNP", treatment = "Baseline") %>% dplyr::select(-SNP)
 
 net_loc     <- rbind(dex_net_cpg_loc, dex_net_snp_loc, veh_net_cpg_loc, veh_net_snp_loc)
@@ -322,13 +333,7 @@ lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1),
 # cytoband <- read.cytoband(species = "hg19")$df
 # cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
 circos.clear()
-# circos.initialize()
-# circos.par("gap.degree" = rep(c(1, 20), 1))
-# circos.initializeWithIdeogram(cytoband, plotType = NULL)
-# circos.genomicIdeogram(cytoband)
-# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
 circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
-# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
 circos.genomicDensity(bed1, col = brewer_pallete[1])
 circos.genomicDensity(bed2, col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
