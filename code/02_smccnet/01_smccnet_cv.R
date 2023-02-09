@@ -22,13 +22,13 @@ snps_gds_fn <- as.character(args[6])
 
 pheno_trait <- c("Status")
 
-# chr <- 22
+# chr <- "all"
 # treatment <- "veh"
-# dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
-# snps_gds_fn <- paste0("input/snps/ld_pruned/gds/chromosomes/dex_geno_chr", chr, ".gds")
+# dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
+# snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
 # cv_k    <- 5
-# cv_dir  <- paste0("results/", cv_k, "_fold_cv/")
-## cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
+# cv_dir  <- paste0("results/", cv_k, "_fold_cv/", chr, "/", treatment)
+# cv_dir  <- paste0("tmp_data/example_chr_", chr, "_", cv_k, "_fold_cv/")
 
 # 2. Load DNAm beta mtrx
 
