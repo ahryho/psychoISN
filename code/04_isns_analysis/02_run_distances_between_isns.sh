@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --job-name=get_isns_dist
-#SBATCH --output=logs/get_isns_dist_%A.out
-#SBATCH --error=logs/get_isns_dist_%A.err
-#SBATCH --mem=500Gb
+#SBATCH --job-name=isns_dist
+#SBATCH --output=logs/veh_isns_dist_%A.out
+#SBATCH --error=logs/veh_isns_dist_%A.err
+#SBATCH --mem=400Gb
 #SBATCH --part=pe
 #SBATCH --mail-type=FAIL,END
 #SBATCH --mail-user=anastasiia_hry@psych.mpg.de
