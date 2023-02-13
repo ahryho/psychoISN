@@ -183,8 +183,7 @@ ggplot(dist_veh_df, aes(x = cluster, y = Age)) +
         plot.title = element_text(size = plt.size), 
         axis.title = element_text(size = plt.size),
         axis.text = element_text(size = plt.size, colour = "black")) + 
-  labs(title = "",
-       y = "Age") 
+  labs(title = "", y = "Age") 
 ```
 
 # GR-induced
@@ -195,13 +194,13 @@ pheno       <- fread(paste0(dir_pre, "input/pheno/pheno_full_for_kimono.csv"), d
 
 dist_dex_df <- fread(paste0(rslt_dir, treatment, "/smccnet_isns_euclidean_dist_mtrx.csv"))
 dist_mtrx   <- as.dist(dist_dex_df)
-hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
+hclust_avg  <- hclust(dist_mtrx, method = "ward.D2")
 ```
 
 ## Dendogram
 
 ```{r}
-nr_cluster  <- 5
+nr_cluster  <- 8
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 cut_avg     <- cutree(hclust_avg, k = nr_cluster)
 
@@ -209,6 +208,7 @@ avg_dend_obj <- as.dendrogram(hclust_avg)
 avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
 plot(avg_col_dend)
 ```
+
 ## Individual plot
 
 ```{r}
@@ -217,18 +217,21 @@ count(dist_dex_df, cluster)
 
 dist_dex_df <- dist_dex_df[match(pheno$DNA_ID, dist_dex_df$DNA_ID), ] 
 dist_dex_df <- left_join(dist_dex_df, pheno[, .(DNA_ID, Status, Age, mAge_Hovath, BMI_D1, Sex)]) %>% 
-  mutate(Status = ifelse(Status == 0, "Control", "Case"),
-         Sex = ifelse(Sex == 1, "Male", "Female"))
+  mutate(
+    Status = ifelse(Status == 0, "Control", "Case"),
+    Sex = ifelse(Sex == 1, "Male", "Female"))
 ```
 
 ```{r}
-fviz_cluster(list(data = dist_dex_df[, 1:196], 
-                  cluster = dist_dex_df$cluster),
-             geom = "point",
-             shape = 10, pointsize = 1) + 
+fviz_cluster(
+  list(
+    data = dist_dex_df[, 1:196],
+    cluster = dist_dex_df$cluster),
+  geom = "point", shape = 10, pointsize = 1) +
   # scale_shape_manual(values = pheno$Status) +
   geom_point(aes(shape = dist_dex_df$Status), alpha = 0.75, size = 2) +
-  theme_minimal() + theme(legend.title=element_blank())
+  theme_minimal() + 
+  theme(legend.title = element_blank())
 ```
 
 ## Sex
