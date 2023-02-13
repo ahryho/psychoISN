@@ -49,17 +49,17 @@ veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_
 # Overlap between dex and veh features
 
 ```{r}
-dex_features <- rownames(dex_global_net) # 5'388
+dex_features <- rownames(dex_global_net)
 length(dex_features)
 
-veh_features <- rownames(veh_global_net) # 4'519
+veh_features <- rownames(veh_global_net)
 length(veh_features)
 
-olap <- intersect(dex_features, veh_features) # 758
+olap <- intersect(dex_features, veh_features) # 
 length(olap)
 
-olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 566
-olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 192
+olap_cpgs <- olap[grepl("cg", olap, ignore.case = T)] # 
+olap_snps <- olap[grepl("rs", olap, ignore.case = T)] # 
 ```
 
 
@@ -190,7 +190,9 @@ ggplot(net_loc_count[Type == "SNP"], aes(x = chr, y = freq, fill = treatment, co
 # Take only QTLs
 thrsh <- 0.7
 
-veh_qtl_net <- veh_global_net[rownames(veh_global_net) %in% snp_loc$SNP, colnames(veh_global_net) %in% cpg_loc$CpG_ID,]  %>%
+veh_qtl_net <- veh_global_net[
+  rownames(veh_global_net) %in% snp_loc$SNP,
+  colnames(veh_global_net) %in% cpg_veh_loc$CpG_ID,] %>%
   as.matrix() %>% as.data.frame()
   
   # Transform net to long format 
@@ -208,7 +210,9 @@ veh_qtl_cnt <- veh_data_long[veh_data_long$value >= thrsh, ] %>%
 
 ```{r dex-snp-cpg_cnt, include = F}
 # Take only QTLs
-dex_qtl_net <- dex_global_net[rownames(dex_global_net) %in% snp_loc$SNP, colnames(dex_global_net) %in% cpg_loc$CpG_ID,]  %>%
+dex_qtl_net <- dex_global_net[
+  rownames(dex_global_net) %in% snp_loc$SNP, 
+  colnames(dex_global_net) %in% cpg_dex_loc$CpG_ID,]  %>%
   as.matrix() %>% as.data.frame()
   
   # Transform net to long format 
