@@ -12,12 +12,12 @@ setwd("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/")
 treatment <- "veh"
 cv_k      <- 5
 chr       <- "all"
-cv_dir    <- paste0("results/", cv_k, "_fold_cv/") # chromosomes/", chr)
+cv_dir    <- paste0("results/", cv_k, "_fold_cv/", chr, "/") # chromosomes/", chr)
 
 # dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/chromosomes/", treatment, "/methyl_beta_mtrx_corrected_for_cov", "_", treatment, "_chr", chr, ".gds")
 # snps_gds_fn <- paste0("input/snps/ld_pruned/gds/chromosomes/dex_geno_chr", chr, ".gds")
 
-dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_veh.gds")
+dnam_gds_fn <- paste0("input/dnam/mad_filtered/gds/methyl_beta_mtrx_corrected_for_cov_mad80_filtered_", treatment, ".gds")
 snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
 
 dnam_mtrx <- LoadMethyl(dnam_gds_fn, is_mad = F)
@@ -31,7 +31,7 @@ snps_mtrx <- snps_mtrx[pheno_treatmnet$DNA_ID, ]
 
 # 2. Load SmCCNet results 
 
-modules_obj <- readRDS(file = paste0(cv_dir, "/smccnet_omic_modules_chr_", chr, ".rds"))
+modules_obj <- readRDS(file = paste0(cv_dir, treatment, "/smccnet_omic_modules_chr_", chr, ".rds"))
 weights     <- modules_obj$weights
 sim_mtrx    <- modules_obj$sim_mtrx
 modules     <- modules_obj$modules
