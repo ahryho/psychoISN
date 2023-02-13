@@ -141,7 +141,7 @@ print("Start obtaining multi-omics modules ...", quote = F)
 print(paste0("Start date and time: ", Sys.time()), quote = F)
 tic("Obtain mult-mics modules")
 
-modules <- getMultiOmicsModules(sim_mtrx, nr_cpgs)
+modules <- getMultiOmicsModules(sim_mtrx, nr_cpgs, CutHeight = 1 - 0.1^5)
 
 print("Multi-omics modules have been obtained", quote = F)
 print(paste0("End date and time: ", Sys.time()), quote = F)
