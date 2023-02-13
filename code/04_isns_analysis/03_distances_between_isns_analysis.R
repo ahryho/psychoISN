@@ -13,8 +13,8 @@ library(factoextra)
 # dir_pre <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 # dnam_pca_dir <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/output/data/methylation/02_dmp/")
 
-source("~/bio/code/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
-dir_pre <- "~/bio/code/kul/dex-stim-human-array-isns/"
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+dir_pre <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 
 rslt_dir     <- paste0(dir_pre, "results/5_fold_cv/all/")
 treatment    <- "veh"
@@ -28,7 +28,7 @@ dist_mtrx       <- as.dist(dist_veh_df)
 hclust_avg      <- hclust(dist_mtrx, method = "ward.D")
 
 plot(hclust_avg)
-nr_cluster      <- 4
+nr_cluster      <- 5
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 
 cut_avg         <- cutree(hclust_avg, k = nr_cluster)
