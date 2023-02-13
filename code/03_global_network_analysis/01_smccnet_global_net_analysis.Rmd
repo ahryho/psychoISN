@@ -8,9 +8,11 @@ library(dplyr)
 library(data.table)
 library(gdsfmt)
 library(RColorBrewer)
-library(ComplexHeatmap)
 library(eulerr)
+library(ComplexHeatmap)
+```
 
+```{r}
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 source("~/kul/dex-stim-human-array-isns/code/00_functions/get_chord_diagramm.R")
 
@@ -18,7 +20,16 @@ cbPalette <- c("grey", "#0072B2")
 brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 ```
 
+```{r plot-param, include = F, eval = T}
+standard_textsize <- 12
+standard_dpi_fig  <- 600
+standard_width_mm_single <- 90
+standard_width_mm_double <- 180
+standard_height_mm <- 100
+```
+
 ```{r include = F}
+plt_dir  <- "/home/ahryhorzhevska/kul/dex-stim-human-array-isns/results/plots/"
 dir_pre  <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 rslt_dir <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results/5_fold_cv/all/"
 setwd(rslt_dir)
@@ -69,11 +80,22 @@ olap_snps <- olap[grepl("rs", olap, ignore.case = T)] #
 euler.tbl <- euler(list(dex = dex_features[grepl("cg", dex_features, ignore.case = T)], 
                         veh = veh_features[grepl("cg", veh_features, ignore.case = T)]))
 
-plot(euler.tbl,
-     quantities = list(type = c("counts", "percent")),
-     fills = alpha(cbPalette[c(2, 1)], 0.5),
-     col = alpha(cbPalette[c(2, 1)], 1),
-     labels =  c("GR-stimulated", "Baseline"))
+plt <- plot(
+  euler.tbl, quantities = list(type = c("counts", "percent")),
+  fills = alpha(cbPalette[c(2, 1)], 0.5),
+  col = alpha(cbPalette[c(2, 1)], 1),
+  labels =  c("GR-stimulated", "Baseline"))
+
+ggsave(
+  paste0(plt_dir, "f01_gl_net_cpg_eulerr.pdf"),
+  plt,
+  width = standard_width_mm_double,
+  height = standard_height_mm, 
+  units = "mm",
+  dpi = standard_dpi_fig, 
+  scale = 1)
+
+plt
 ```
 
 ## SNP level
@@ -82,11 +104,22 @@ plot(euler.tbl,
 euler.tbl <- euler(list(dex = dex_features[grepl("rs", dex_features, ignore.case = T)], 
                         veh = veh_features[grepl("rs", veh_features, ignore.case = T)]))
 
-plot(euler.tbl,
-     quantities = list(type = c("counts", "percent")),
-     fills = alpha(cbPalette[c(2, 1)], 0.5),
-     col = alpha(cbPalette[c(2, 1)], 1),
-     labels =  c("GR-stimulated", "Baseline"))
+plt <- plot(
+  euler.tbl, quantities = list(type = c("counts", "percent")),
+  fills = alpha(cbPalette[c(2, 1)], 0.5),
+  col = alpha(cbPalette[c(2, 1)], 1),
+  labels =  c("GR-stimulated", "Baseline"))
+
+ggsave(
+  paste0(plt_dir, "f02_gl_net_snps_eulerr.pdf"),
+  plt,
+  width = standard_width_mm_double,
+  height = standard_height_mm, 
+  units = "mm",
+  dpi = standard_dpi_fig, 
+  scale = 1)
+
+plt
 ```
 
 ```{r load-cpg-coordintaes, include = F}
@@ -134,8 +167,7 @@ net_loc_count <- net_loc %>%
 ```
 
 ```{r}
-plt.size <- 12
-ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) + 
+plt <- ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type, color = Type)) + 
   geom_bar(stat = "identity", position = "stack") +
   geom_text(data = net_loc_count[freq > 0.01], 
             aes(label = scales::percent(freq, accuracy = 1), y = freq), 
@@ -143,20 +175,27 @@ ggplot(net_loc_count, aes(x = treatment, y = freq, fill = Type)) +
             color = "black") +
   scale_y_continuous(labels = scales::percent) +
   facet_wrap(.~chr, nrow = 1, strip.position = "top") +
-  labs(title = "",
-       x = "",
-       y = "Variant frequency") +
+  labs(title = "", x = "", y = "Variant frequency") +
   theme(legend.title = element_blank(), 
         legend.position = "bottom",
         panel.grid.major = element_blank(),
         panel.background = element_blank(),
-        plot.title = element_text(size = plt.size),
-        axis.title = element_text(size = plt.size, colour = "black"),
+        plot.title = element_text(size = standard_textsize),
+        axis.title = element_text(size = standard_textsize, colour = "black"),
         axis.text.x = element_text(angle = 90, hjust = 0.5, colour = "black"),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
   scale_fill_manual(values = alpha(brewer_pallete, 0.25)) +
   scale_color_manual(values = alpha(brewer_pallete, 0.75))
+
+ggsave(
+  paste0(plt_dir, "f03_gl_net_feature_distribution.pdf"),
+  plt,
+  width = standard_width_mm_double * 1.2,
+  height = standard_height_mm * 1,
+  units = "mm",
+  dpi = standard_dpi_fig,
+  scale = 2)
 ```
 
 <!-- ## SNPs -->
@@ -188,7 +227,7 @@ ggplot(net_loc_count[Type == "SNP"], aes(x = chr, y = freq, fill = treatment, co
 # Nr of CpGs per SNP 
 ```{r veh-snp-cpg_cnt, include = F}
 # Take only QTLs
-thrsh <- 0.7
+thrsh <- 0.75
 
 veh_qtl_net <- veh_global_net[
   rownames(veh_global_net) %in% snp_loc$SNP,
@@ -231,21 +270,28 @@ dex_qtl_cnt <- dex_data_long[dex_data_long$value >= thrsh, ] %>%
 ```{r}
 qtl_cnt <- rbind(veh_qtl_cnt, dex_qtl_cnt)
 
-plt.size <- 12
-ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) +
+plt <- ggplot(qtl_cnt, aes(x = treatment, y = n, color = treatment, fill = treatment)) +
   geom_boxplot(position = position_dodge(width = 0.8)) +
   theme(legend.position = "bottom", # c(0.9, 0.9), 
         legend.title = element_blank(), 
-        legend.text = element_text(size = plt.size),
+        legend.text = element_text(size = standard_textsize),
         panel.grid.major = element_blank(), 
         panel.background = element_blank(),
-        plot.title = element_text(size = plt.size), 
-        axis.title = element_text(size = plt.size),
-        axis.text = element_text(size = plt.size, colour = "black")) + 
-  labs(title = "",
-       x = "", y = "Nr. of CpGs per SNP") +
-  scale_color_manual(values = cbPalette) +
+        plot.title = element_text(size = standard_textsize), 
+        axis.title = element_text(size = standard_textsize),
+        axis.text = element_text(size = standard_textsize, colour = "black")) + 
+  labs(title = "", x = "", y = "Nr. of CpGs per SNP") +
+  scale_color_manual(values = alpha(cbPalette, 0.75)) +
   scale_fill_manual(values = alpha(cbPalette, 0.25))
+
+ggsave(
+  paste0(plt_dir, "f04_gl_net_nr_cpgs_per_snp.pdf"),
+  plt,
+  width = standard_width_mm_double * 1,
+  height = standard_height_mm * 2,
+  units = "mm",
+  dpi = standard_dpi_fig,
+  scale = 1)
 ```
 
 # Chord plot of meQTLs
