@@ -3,6 +3,7 @@ library(data.table)
 library(gdsfmt)
 library(RColorBrewer)
 
+library(GenommicRanges)
 library(annotatr)
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
