@@ -64,10 +64,10 @@ library(RColorBrewer)
 # dnam_pca_dir <- paste0("/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-array/output/data/methylation/02_dmp/")
 brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 
-source("~/bio/code/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
+source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 
-dir_pre  <- "~/bio/code/kul/dex-stim-human-array-isns/"
-rslt_dir <- paste0(dir_pre, "results/data/5_fold_cv/all/")
+dir_pre  <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
+rslt_dir <- paste0(dir_pre, "results/5_fold_cv/all/")
 ```
 
 # Baseline
