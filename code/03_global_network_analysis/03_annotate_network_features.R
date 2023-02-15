@@ -80,7 +80,7 @@ veh_snp_chromhmm_anno <- annotate_chromHMM(veh_snp_anno, chromhmm_blood_anno, ou
 
 ## Annotate ad save bkgr snps
 
-snps_gds_fn <- paste0("input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
+snps_gds_fn <- paste0(dir_pre, "input/snps/ld_pruned/gds/dex_geno_imputed_maf_ld_pruned_from_gen.gds")
 snps_mtrx   <- LoadGenotype(snps_gds_fn, is_ld = F)
 bkgr_snps   <- snp_chipseeker_anno[names(snp_chipseeker_anno) %in% colnames(snps_mtrx),]
 
