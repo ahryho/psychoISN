@@ -82,7 +82,7 @@ hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
 ```
 
 ```{r}
-nr_cluster  <- 5
+nr_cluster  <- 4
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 cut_avg     <- cutree(hclust_avg, k = nr_cluster)
 
@@ -194,13 +194,13 @@ pheno       <- fread(paste0(dir_pre, "input/pheno/pheno_full_for_kimono.csv"), d
 
 dist_dex_df <- fread(paste0(rslt_dir, treatment, "/smccnet_isns_euclidean_dist_mtrx.csv"))
 dist_mtrx   <- as.dist(dist_dex_df)
-hclust_avg  <- hclust(dist_mtrx, method = "ward.D2")
+hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
 ```
 
 ## Dendogram
 
 ```{r}
-nr_cluster  <- 8
+nr_cluster  <- 5
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 cut_avg     <- cutree(hclust_avg, k = nr_cluster)
 
