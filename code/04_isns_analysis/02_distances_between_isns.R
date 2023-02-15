@@ -16,26 +16,6 @@ rslt_dir    <- as.character(args[2])
 # treatment <- "veh"
 setwd(rslt_dir)
 
-# # 1. Load global network
-# 
-# treatment <- "dex"
-# dex_global_net  <- readRDS(paste0(treatment, "/networks/smccnet_global_chr_all.rds"))
-# 
-# treatment <- "veh"
-# veh_global_net <- readRDS(paste0(treatment,  "/networks/smccnet_global_chr_all.rds"))
-# 
-# dex_global_net_flatten <- flattenCorrMatrix(dex_global_net, pmat = NULL) %>% setDT()
-# veh_global_net_flatten <- flattenCorrMatrix(veh_global_net, pmat = NULL) %>% setDT()
-# 
-# # 2. Get the overlap between dex and veh features
-# 
-# dex_features <- rownames(dex_global_net) # 5'388
-# veh_features <- rownames(veh_global_net) # 4'519
-# 
-# olap_feat <- intersect(dex_features, veh_features) # 758
-# olap_cpgs <- olap_feat[grepl("cg", olap_feat, ignore.case = T)] # 566
-# olap_snps <- olap_feat[grepl("rs", olap_feat, ignore.case = T)] # 192
-
 # 2. Load ISNs
 
 isns_fn_lst <- list.files(paste0(treatment, "/networks"), pattern = "individual", full.names = T)
