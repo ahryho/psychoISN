@@ -67,7 +67,7 @@ Data are stored on the MPIP computational cluster:
 
 ## Results and additional information
 
-Results are stored on the MPIP computational cluster: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results.
+Results are stored on the MPIP computational cluster: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results`.
 
 For plots which describe results, please refer to the [folder](https://github.com/ahryho/psychoISNs/tree/main/results/plots).
 
