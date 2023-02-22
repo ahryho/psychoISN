@@ -12,8 +12,6 @@ output/data/
 input/
 results/data
 *.png
-*.jpg
-*.jpeg
 
 # Example code in package build process
 *-Ex.R
