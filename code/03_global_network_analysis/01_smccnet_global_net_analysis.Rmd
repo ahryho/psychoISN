@@ -437,7 +437,7 @@ dev.off()
 
 ```{r include = T, eval = T}
 dex_cdm_unique  <- dex_cdm[!(dex_cdm$meQTL %in% intersect_cdm$meQTL),]
-(selected_meqtl <- dex_cdm_unique[25,  ])
+(selected_meqtl <- dex_cdm_unique[1,  ])
 ```
 
 ```{r out.width = "95%", include = T, eval = T}
