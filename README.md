@@ -1,14 +1,16 @@
-# __Individual-Specific Network for Stress-Related Psychiatric Disorders__
+# __Uncovering relationships between stress and psychiatric traits via multi-omics individual-specific networks (ISNs)__
 
 _by Anastasiia Hryhorzhevska_
 
-[Brief introduction](#brief-introduction)
+[1. Brief introduction to ISNs](#brief-introduction-to-isns)
 
-[1. Input data](#1-input-data)
+[2. Input data](#input-data)
 
-[Additional information](#additional-information)
+[3. Research questions](#research-questions)
 
-## **Brief introduction**
+[4. Results and aditional information](#results-and-additional-information)
+
+## **Brief introduction to ISNs**
 
 **What?**
 
@@ -30,7 +32,7 @@ The core of the approach is following:
 
 For additional information on methodology please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.pdf).
 
-## **1. Input data**
+## **Input data**
 
 Participants comprised **196** Caucasian individuals of the Max Planck Institute of Psychiatry (MPIP) in Munich. Of the participants, 
 
@@ -57,6 +59,16 @@ Data are stored on the MPIP computational cluster:
 
 - Phenotype: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/pheno`.
 
-## Additional information
+## Research questions
+
+1. How are the individuals grouped according to the changes before and after stimulation with dexamethasone?
+
+2. What are the main drivers of these changes?
+
+## Results and additional information
+
+Results are stored on the MPIP computational cluster: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results.
+
+For plots which describe results, please refer to the [folder](https://github.com/ahryho/psychoISNs/tree/main/results/plots).
 
 For additional information on methodology, results and limitations, please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.pdf).
