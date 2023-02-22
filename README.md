@@ -28,7 +28,7 @@ The core of the approach is following:
 
 ![isns_construction](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/figures/isns_construction.jpg)
 
-For additional information on methodology please refer to the [pdf]().
+For additional information on methodology please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.pdf).
 
 ## **1. Input data**
 
@@ -59,4 +59,4 @@ Data are stored on the MPIP computational cluster:
 
 ## Additional information
 
-For additional information on methodology, results and limitations, please refer to the [pdf]().
+For additional information on methodology, results and limitations, please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.pdf).
