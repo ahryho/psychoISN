@@ -45,19 +45,6 @@ treatment <- "veh"
 veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_global_chr_all.rds"))
 ```
 
-# Test for significance
-
-```{r}
-# treatment <- "dex"
-# dex_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds"))# smccnet_global_chr_all.rds"))
-# 
-# treatment <- "veh"
-# veh_global_net <- readRDS(paste0(rslt_dir, treatment, "/networks/smccnet_individual_MPIPSYKL_014030_chr_all.rds")) # smccnet_global_chr_all.rds"))
-# 
-# dex_global_net <- dex_global_net$network
-# veh_global_net <- veh_global_net$network
-```
-
 
 # Overlap between dex and veh features
 
@@ -310,7 +297,7 @@ cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by
   mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
 cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("SNP" = "ID")) %>% 
   mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
-head(cdm) #  rs28513678 cg16400794 1.0000000    chr1 27709850    chr3   3776878
+head(cdm)
 
 veh_cdm <- cdm
 
@@ -326,8 +313,7 @@ color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=14
   return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
 }
 
-bed1$col <-color.gradient(bed1$value)
-# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+bed1$col  <-color.gradient(bed1$value)
 lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1), 0.01), 
                             col_fun = color.gradient, 
     title_position = "topleft", title = "value")
@@ -336,13 +322,7 @@ lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1),
 # cytoband <- cytoband[!(cytoband$V1 %in% c("chrX, chrY")), ]
 pdf(paste0(plt_dir, "f05_gl_net_circos_plt_", treatment, ".pdf"), compress = TRUE)
 circos.clear()
-# circos.initialize()
-# circos.par("gap.degree" = rep(c(1, 20), 1))
-# circos.initializeWithIdeogram(cytoband, plotType = NULL)
-# circos.genomicIdeogram(cytoband)
-# circos.genomicLabels(bed1,  labels.column = 6, col = bed1$col, side = "outside")
 circos.initializeWithIdeogram(chromosome.index = paste0("chr", 1:22))
-# circos.genomicRainfall(bed_corr, mode = "min", pch = 16, cex = 0.8, col = c("#FF000080", "#0000FF80"))
 circos.genomicDensity(bed1, col = brewer_pallete[1])
 circos.genomicDensity(bed2, col =  brewer_pallete[2])
 circos.genomicLink(bed1, bed2, col = bed1$col, border = NA)
@@ -362,7 +342,7 @@ cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by
   mutate(cpg_chr = paste0("chr", chr), cpg_pos = pos) %>% dplyr::select(-c(chr, pos))
 cdm <- left_join(cdm, net_loc[treatment == treatment, c("ID", "chr", "pos")], by = c("SNP" = "ID")) %>% 
   mutate(snp_chr = paste0("chr", chr), snp_pos = pos) %>% dplyr::select(-c(chr, pos)) %>% unique()
-head(cdm) # rs61904579 cg15978899 0.9385598    chr6  30882994   chr11 56472268
+head(cdm)
 
 dex_cdm <- cdm
 
@@ -378,8 +358,7 @@ color.gradient <- function(x, colors=c("yellow", "green", "purple"), colsteps=14
   return( colorRampPalette(colors) (colsteps) [ findInterval(x, seq(min(x),max(x), length.out=colsteps)) ] )
 }
 
-bed1$col <-color.gradient(bed1$value)
-# bed_corr <- list(bed1[cor > 0], bed1[cor < 0])
+bed1$col  <- color.gradient(bed1$value)
 lgd_links <- Legend(at = signif(seq(min(bed1$value), max(bed1$value), by = 0.1), 0.01), 
                             col_fun = color.gradient, 
     title_position = "topleft", title = "value")
