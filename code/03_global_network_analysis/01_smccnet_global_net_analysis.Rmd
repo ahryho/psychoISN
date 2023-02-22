@@ -411,19 +411,23 @@ intersect_cdm   <- inner_join(dex_cdm, veh_cdm, by = c("SNP", "CpG_ID", "meQTL")
 ```
 
 ```{r out.width = "95%", include = T, eval = T}
-(selected_meqtl <- intersect_cdm[1,]) # rs4881713 cg01572694 0.8213771     chr17  46657555     chr11  50327851
+(selected_meqtl <- intersect_cdm[1,])
+```
 
-pdf(paste0(plt_dir, "f06_gl_net_box_plt_dev_veh.pdf"), compress = TRUE)
+```{r out.width = "95%", include = T, eval = T}
+pdf(paste0(plt_dir, "f06_gl_net_box_plt_dex_veh.pdf"), compress = TRUE)
 ProcessGetBoxPlot(methyl_beta_veh_df, methyl_beta_dex_df, snps_mtrx, selected_meqtl, fdr.thr = 0.05)
 dev.off()
 ```
 
 ### Baseline
 
-```{r out.width = "95%", include = T, eval = T}
+```{r include = T, eval = T}
 veh_cdm_unique  <- veh_cdm[!(veh_cdm$meQTL %in% intersect_cdm$meQTL),]
-(selected_meqtl <- veh_cdm_unique[1, ]) # rs2324663 cg16400794 0.8511602    chr1 27709850    chr3 8649462 rs2324663-cg16400794
+(selected_meqtl <- veh_cdm_unique[1, ])
+```
 
+```{r include = T, eval = T}
 pdf(paste0(plt_dir, "f07_gl_net_box_plt_veh_only.pdf"), compress = TRUE)
 ProcessGetBoxPlot(methyl_beta_veh_df, methyl_beta_dex_df, snps_mtrx, selected_meqtl, fdr.thr = 0.05)
 dev.off()
@@ -431,10 +435,12 @@ dev.off()
 
 ### GR-stimulated
 
-```{r out.width = "95%", include = T, eval = T}
+```{r include = T, eval = T}
 dex_cdm_unique  <- dex_cdm[!(dex_cdm$meQTL %in% intersect_cdm$meQTL),]
-(selected_meqtl <- dex_cdm_unique[25,  ]) # rs79189796 cg15535683 0.8752459    chr7 122553915   chr11 50123506 rs79189796-cg15535683
+(selected_meqtl <- dex_cdm_unique[25,  ])
+```
 
+```{r out.width = "95%", include = T, eval = T}
 pdf(paste0(plt_dir, "f08_gl_net_box_plt_dex_only.pdf"), compress = TRUE)
 ProcessGetBoxPlot(methyl_beta_veh_df, methyl_beta_dex_df, snps_mtrx, selected_meqtl, fdr.thr = 0.05)
 dev.off()
