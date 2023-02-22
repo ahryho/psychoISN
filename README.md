@@ -24,6 +24,7 @@ ISNs are useful because
 
 **How?**
 
+![The core of the approach is following](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/figures/isns_construction.jpg)
 
 ## **1. Input data**
 
