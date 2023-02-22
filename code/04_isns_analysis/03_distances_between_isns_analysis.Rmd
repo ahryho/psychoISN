@@ -66,6 +66,7 @@ brewer_pallete <- brewer.pal(n = 8, name = "Dark2")
 
 source("~/kul/dex-stim-human-array-isns/code/00_functions/load_gds_files.R")
 
+plt_dir  <- "/home/ahryhorzhevska/kul/dex-stim-human-array-isns/results/plots/"
 dir_pre  <- "/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/"
 rslt_dir <- paste0(dir_pre, "results/5_fold_cv/all/")
 ```
@@ -78,17 +79,20 @@ pheno       <- fread(paste0(dir_pre, "input/pheno/pheno_full_for_kimono.csv"), d
 
 dist_veh_df <- fread(paste0(rslt_dir, treatment, "/smccnet_isns_euclidean_dist_mtrx.csv"))
 dist_mtrx   <- as.dist(dist_veh_df)
-hclust_avg  <- hclust(dist_mtrx, method = "ward.D")
+hclust_avg  <- hclust(dist_mtrx, method = "ward.D2")
 ```
 
 ```{r}
-nr_cluster  <- 4
+nr_cluster  <- 7
 # rect.hclust(hclust_avg , k = nr_cluster, border = 2:6)
 cut_avg     <- cutree(hclust_avg, k = nr_cluster)
 
 avg_dend_obj <- as.dendrogram(hclust_avg)
 avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
+
+pdf(paste0(plt_dir, "f11_ind_net_dendogram_", treatment, ".pdf"), compress = TRUE)
 plot(avg_col_dend)
+dev.off()
 ```
 
 ```{r}
@@ -104,14 +108,17 @@ dist_veh_df <- left_join(dist_veh_df,pheno[, .(DNA_ID, Status, Age, mAge_Hovath,
 ## Individual plot
 
 ```{r}
-fviz_cluster(list(data = dist_veh_df[, 1:196], 
-                  cluster = dist_veh_df$cluster),
-             geom = "point",
-             shape = 10, pointsize = 1) + 
+pdf(paste0(plt_dir, "f12_ind_net_cluster_plot_", treatment, ".pdf"), compress = TRUE)
+fviz_cluster(
+  list(data = dist_veh_df[, 1:196], 
+      cluster = dist_veh_df$cluster),
+  axes = c(1, 2),
+  geom = "point",
+  shape = 10, pointsize = 1) +
   # scale_shape_manual(values = pheno$Status) +
   geom_point(aes(shape = dist_veh_df$Status), alpha = 0.75, size = 2) +
   theme_minimal() + theme(legend.title=element_blank())
-
+dev.off()
 ```
 
 ## Sex
@@ -126,6 +133,8 @@ veh_sex_cnt <- dist_veh_df %>% select(cluster, Sex) %>%
 
 ```{r out.width = "100%", fig.cap = "", include = T, eval = T}
 plt.size <- 12
+
+pdf(paste0(plt_dir, "f13_ind_net_sex_barplot_", treatment, ".pdf"), compress = TRUE)
 
 ggplot(veh_sex_cnt, aes(x = cluster, y = n, fill = Sex, color = Sex)) + 
   geom_bar(stat = "identity", position = position_dodge()) +
@@ -148,12 +157,15 @@ ggplot(veh_sex_cnt, aes(x = cluster, y = n, fill = Sex, color = Sex)) +
         axis.ticks.y = element_blank()) +
   scale_color_manual(values = brewer_pallete) +
   scale_fill_manual(values = alpha(brewer_pallete, 0.25))
+  dev.off()
 ```
 
 ## BMI
 
 ```{r}
-plt.size <- 10
+pdf(paste0(plt_dir, "f14_ind_net_bmi_boxplot_", treatment, ".pdf"), compress = TRUE)
+
+plt.size <- 12
 ggplot(dist_veh_df, aes(x = cluster, y = BMI_D1)) +
   geom_violin(aes(color = cluster)) +
   geom_boxplot(width = 0.05, fill = "white", color = "black") +
@@ -167,11 +179,14 @@ ggplot(dist_veh_df, aes(x = cluster, y = BMI_D1)) +
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "",
        y = "BMI") 
+dev.off()
 ```
 ## Age
 
 ```{r}
-plt.size <- 10
+plt.size <- 12
+pdf(paste0(plt_dir, "f15_ind_net_age_boxplot_", treatment, ".pdf"), compress = TRUE)
+
 ggplot(dist_veh_df, aes(x = cluster, y = Age)) +
   geom_violin(aes(color = cluster)) +
   geom_boxplot(width = 0.05, fill = "white", color = "black") +
@@ -184,6 +199,8 @@ ggplot(dist_veh_df, aes(x = cluster, y = Age)) +
         axis.title = element_text(size = plt.size),
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "", y = "Age") 
+
+dev.off()
 ```
 
 # GR-induced
@@ -206,7 +223,10 @@ cut_avg     <- cutree(hclust_avg, k = nr_cluster)
 
 avg_dend_obj <- as.dendrogram(hclust_avg)
 avg_col_dend <- color_branches(avg_dend_obj, k = nr_cluster)
+
+pdf(paste0(plt_dir, "f21_ind_net_dendogram_", treatment, ".pdf"), compress = TRUE)
 plot(avg_col_dend)
+dev.off()
 ```
 
 ## Individual plot
@@ -223,15 +243,17 @@ dist_dex_df <- left_join(dist_dex_df, pheno[, .(DNA_ID, Status, Age, mAge_Hovath
 ```
 
 ```{r}
+pdf(paste0(plt_dir, "f22_ind_net_cluster_plot_", treatment, ".pdf"), compress = TRUE)
 fviz_cluster(
-  list(
-    data = dist_dex_df[, 1:196],
-    cluster = dist_dex_df$cluster),
-  geom = "point", shape = 10, pointsize = 1) +
+  list(data = dist_dex_df[, 1:196], 
+      cluster = dist_dex_df$cluster),
+  axes = c(1, 2),
+  geom = "point",
+  shape = 10, pointsize = 1) +
   # scale_shape_manual(values = pheno$Status) +
-  geom_point(aes(shape = dist_dex_df$Status), alpha = 0.75, size = 2) +
-  theme_minimal() + 
-  theme(legend.title = element_blank())
+  geom_point(aes(shape = dist_veh_df$Status), alpha = 0.75, size = 2) +
+  theme_minimal() + theme(legend.title=element_blank())
+dev.off()
 ```
 
 ## Sex
@@ -245,6 +267,8 @@ dex_sex_cnt <- dist_dex_df %>% select(cluster, Sex) %>%
 ```
 
 ```{r out.width = "100%", fig.cap = "", include = T, eval = T}
+pdf(paste0(plt_dir, "f23_ind_net_sex_barplot_", treatment, ".pdf"), compress = TRUE)
+
 plt.size <- 12
 
 ggplot(dex_sex_cnt, aes(x = cluster, y = n, fill = Sex, color = Sex)) + 
@@ -267,6 +291,8 @@ ggplot(dex_sex_cnt, aes(x = cluster, y = n, fill = Sex, color = Sex)) +
         axis.ticks.y = element_blank()) +
   scale_color_manual(values = brewer_pallete) +
   scale_fill_manual(values = alpha(brewer_pallete, 0.25))
+
+dev.off()
 ```
 
 
@@ -283,7 +309,10 @@ fviz_cluster(list(data = dist_dex_df[, 1:196],
 ## BMI
 
 ```{r}
-plt.size <- 10
+plt.size <- 12
+
+pdf(paste0(plt_dir, "f24_ind_net_bmi_boxplot_", treatment, ".pdf"), compress = TRUE)
+
 ggplot(dist_dex_df, aes(x = cluster, y = BMI_D1)) +
   geom_violin(aes(color = cluster)) +
   geom_boxplot(width = 0.05, fill = "white", color = "black") +
@@ -297,12 +326,17 @@ ggplot(dist_dex_df, aes(x = cluster, y = BMI_D1)) +
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "",
        y = "BMI") 
+
+dev.off()
 ```
 
 ## Age
 
 ```{r}
-plt.size <- 10
+plt.size <- 12
+
+pdf(paste0(plt_dir, "f25_ind_net_age_boxplot_", treatment, ".pdf"), compress = TRUE)
+
 ggplot(dist_dex_df, aes(x = cluster, y = Age)) +
   geom_violin(aes(color = cluster)) +
   geom_boxplot(width = 0.05, fill = "white", color = "black") +
@@ -316,5 +350,6 @@ ggplot(dist_dex_df, aes(x = cluster, y = Age)) +
         axis.text = element_text(size = plt.size, colour = "black")) + 
   labs(title = "",
        y = "Age") 
+dev.off()
 ```
 
