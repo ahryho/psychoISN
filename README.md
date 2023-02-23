@@ -45,7 +45,7 @@ Baseline whole blood samples were obtained at 6 pm after two hours of fasting an
 The available multiomics data for the currect project:
 
 - Methylation
-- Gene-expression (for further analysis)
+- Gene-expression (for later analysis)
 - Genotype
 - Phenotype 
 
