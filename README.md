@@ -30,7 +30,7 @@ The core of the approach is following:
 
 ![isns_construction](https://github.com/ahryho/psychoISN/blob/main/materials/figures/isns_construction.jpg)
 
-For additional information on methodology please refer to the [slides](https://github.com/ahryho/psychoISN/blob/main/materials/final_presentation.jpg).
+For additional information on methodology please refer to the [slides](https://github.com/ahryho/psychoISN/blob/main/materials/final_presentation.pdf).
 
 ## **Input data**
 
