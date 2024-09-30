@@ -28,9 +28,9 @@ ISNs are useful because
 
 The core of the approach is following: 
 
-![isns_construction](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/figures/isns_construction.jpg)
+![isns_construction](https://github.com/ahryho/psychoISN/blob/main/materials/figures/isns_construction.jpg)
 
-For additional information on methodology please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.jpg).
+For additional information on methodology please refer to the [slides](https://github.com/ahryho/psychoISN/blob/main/materials/final_presentation.jpg).
 
 ## **Input data**
 
