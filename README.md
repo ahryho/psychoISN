@@ -51,13 +51,7 @@ The available multiomics data for the currect project:
 
 For detailed data overview, please refer to the [data overview](https://ahryho.github.io/psychoGE/).
 
-Data are stored on the MPIP computational cluster:
-
-- DNAm: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/dnam`
-
-- Genotype: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/snps`
-
-- Phenotype: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/input/pheno`.
+Data are stored on the MPIP computational cluster.
 
 ## Research questions
 
@@ -67,8 +61,6 @@ Data are stored on the MPIP computational cluster:
 
 ## Results and additional information
 
-Results are stored on the MPIP computational cluster: `/binder/mgp/workspace/2020_DexStim_Array_Human/dex-stim-human-isns/results`.
-
-For plots which describe results, please refer to the [folder](https://github.com/ahryho/psychoISNs/tree/main/results/plots).
+Results are stored on the MPIP computational cluster.
 
 For additional information on methodology, results and limitations, please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.pdf).
