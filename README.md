@@ -65,3 +65,9 @@ Data are stored on the MPIP computational cluster.
 Results are stored on the MPIP computational cluster.
 
 For additional information on methodology, results and limitations, please refer to the [slides](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/final_presentation.pdf).
+
+For further questions and/or suggestions, please contact the owner of this repository.
+
+## Authors
+
+[Anastasiia Hryhorzhevska](https://www.linkedin.com/in/ahryhorzhevska)
