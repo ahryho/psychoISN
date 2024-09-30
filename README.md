@@ -49,7 +49,8 @@ The available multiomics data for the currect project:
 - Genotype
 - Phenotype 
 
-For detailed data overview, please refer to the [data overview](https://ahryho.github.io/psychoGE/).
+The follwoing figure displays a flow of the data collection: 
+![data overview](https://github.com/ahryho/dex-stim-human-array-isns/blob/main/materials/figures/data-schema.pdf)
 
 Data are stored on the MPIP computational cluster.
 
