@@ -49,7 +49,7 @@ The available multiomics data for the currect project:
 - Genotype
 - Phenotype 
 
-The follwoing figure displays a flow of the data collection: 
+The following figure displays a flow of the data collection: 
 ![data overview](https://github.com/ahryho/psychoISN/blob/main/materials/figures/data-schema.jpg)
 
 Data are stored on the MPIP computational cluster.
