@@ -1,6 +1,8 @@
-# __Uncovering relationships between stress and psychiatric traits via multi-omics individual-specific networks (ISNs)__
+ # __Uncovering relationships between stress and psychiatric traits via multi-omics individual-specific networks (ISNs)__
 
 [Objectives and research questions](#objectives)
+
+[Brief biological introduction](brief-biological-introduction)
 
 [Input data](#input-data)
 
@@ -17,6 +19,18 @@ The primary aim of this study is to investigate the genetic variants that influe
 1. How are individuals clustered based on changes observed before and after stimulation with dexamethasone, a synthetic glucocorticoid (a type of steroid) that mimics cortisol, a hormone naturally released during stress?
 
 2. What are the key factors driving these changes?
+
+## Brief biological introduction
+
+Dexamethasone, a synthetic glucocorticoid, is commonly used in research to investigate the hypothalamic-pituitary-adrenal (HPA) axis, which regulates the body’s stress response. 
+The dexamethasone suppression test (DST) is a well-established method for assessing HPA axis function. By administering dexamethasone and monitoring the body's ability to suppress cortisol production, researchers can gain insights into stress-related physiological responses.
+
+In psychiatric and stress-related research, the DST is particularly relevant for studying how individuals respond to stress and whether disruptions in cortisol regulation contribute to the development of psychiatric disorders, such as depression and anxiety.
+
+In this study, dexamethasone stimulation is used to:
+
+1. Observe how genetic variants affect the body's stress response.
+2. Analyze the environmental and genetic factors influencing individual differences in cortisol regulation, which may be associated with psychiatric risk.
 
 ## **Input data**
 
