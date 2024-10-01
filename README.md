@@ -2,7 +2,7 @@
 
 [Objectives and research questions](#objectives)
 
-[Brief biological introduction](brief-biological-introduction)
+[Brief biological introduction](#brief-biological-introduction)
 
 [Input data](#input-data)
 
