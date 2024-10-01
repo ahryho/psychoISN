@@ -44,11 +44,11 @@ Data are stored on the MPIP computational cluster.
 
 **Individual-Specific Network (ISN) Construction**
 
-To address the research questions, we utilize Individual-Specific Networks (ISNs), which focus on personalized data to model each individual’s unique associations over time. ISNs are constructed using multiple measurements for the same individual, allowing us to capture temporal dynamics and environmental influences that may differ from the population-level network.
+To address the research questions, Individual-Specific Networks (ISNs), which focus on personalized data to model each individual’s unique associations over time, were utilized. ISNs are constructed using multiple measurements for the same individual, allowing us to capture temporal dynamics and environmental influences that may differ from the population-level network.
 
 **Why ISNs?**
 
-**1. Personalized Insight:** ISNs enable the translation of population-level interpretations to the individual. By focusing on individual-specific edges (connections between nodes representing biomarkers), we can extrapolate from general models to individual dynamics, providing a more granular understanding of how each person’s biological and environmental factors interact.
+**1. Personalized Insight:** ISNs enable the translation of population-level interpretations to the individual. By focusing on individual-specific edges (connections between nodes representing biomarkers), one can extrapolate from general models to individual dynamics, providing a more granular understanding of how each person’s biological and environmental factors interact.
 
 **2. Temporal Focus:** ISNs allow us to observe each individual's specific associations and changes over time, providing a longitudinal view of how stress-induced patterns develop and evolve within an individual.
 
